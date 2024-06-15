@@ -1,0 +1,13 @@
+[package]
+name = "ray-tracing"
+version = "0.1.0"
+edition = "2021"
+
+
+[alias]
+rr = "run --release"
+br = "build --release"
+
+[dependencies]
+dyn-clone = "1.0.17"
+rand = "0.8.5"
