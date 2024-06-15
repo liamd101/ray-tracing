@@ -3,23 +3,31 @@ use crate::color::Color;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::utils::degrees_to_radians;
 use crate::utils::random_double;
 use crate::utils::INFINITY;
 use crate::vec3;
-use crate::vec3::{Point3, Vec3};
 use crate::vec3::random_on_hemisphere;
+use crate::vec3::{Point3, Vec3};
 
 pub struct Camera {
     pub aspect_ratio: f32,
     pub image_width: usize,
     pub samples_per_pixel: usize,
     pub max_depth: usize,
+    pub vfov: f32,
+    pub look_from: Point3,
+    pub look_at: Point3,
+    pub vup: Vec3,
     image_height: usize,
     pixel_samples_scale: f32,
     center: Vec3,
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
 }
 
 impl Default for Camera {
@@ -29,12 +37,19 @@ impl Default for Camera {
             image_width: 400,
             samples_per_pixel: 10,
             max_depth: 10,
+            vfov: 90.0,
+            look_from: Point3::new(0.0, 0.0, 0.0),
+            look_at: Point3::new(0.0, 0.0, -1.0),
+            vup: Vec3::new(0.0, 1.0, 0.0),
             image_height: 0,
             pixel_samples_scale: 1.0 / 10.0,
             center: Vec3::new(0.0, 0.0, 0.0),
             pixel00_loc: Vec3::new(0.0, 0.0, 0.0),
             pixel_delta_u: Vec3::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vec3::new(0.0, 0.0, 0.0),
+            u: Vec3::default(),
+            v: Vec3::default(),
+            w: Vec3::default(),
         }
     }
 }
@@ -89,14 +104,20 @@ impl Camera {
 
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f32;
 
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
-        let viewport_width = viewport_height * (image_width as f32 / image_height as f32);
-        let camera_center = Point3::new(0.0, 0.0, 0.0);
-        self.center = camera_center;
+        self.center = self.look_from;
 
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
+        let focal_length = (self.look_from - self.look_at).length();
+        let theta = degrees_to_radians(self.vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
+        let viewport_width = viewport_height * (image_width as f32 / image_height as f32);
+
+        self.w = vec3::unit_vector(self.look_from - self.look_at);
+        self.u = vec3::unit_vector(vec3::cross(self.vup, self.w));
+        self.v = vec3::cross(self.w, self.u);
+
+        let viewport_u = viewport_width * self.u;
+        let viewport_v = viewport_height * -self.v;
 
         let pixel_delta_u = viewport_u / (image_width as f32);
         let pixel_delta_v = viewport_v / (image_height as f32);
@@ -104,7 +125,7 @@ impl Camera {
         self.pixel_delta_v = pixel_delta_v;
 
         let viewport_upper_left =
-            camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+            self.center - (focal_length * self.w) - (viewport_u / 2.0) - (viewport_v / 2.0);
         self.pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
     }
 
