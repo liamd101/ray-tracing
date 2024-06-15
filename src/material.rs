@@ -1,4 +1,4 @@
-use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3};
+use crate::{color::Color, hittable::HitRecord, ray::Ray, utils::random_double, vec3};
 use dyn_clone::DynClone;
 
 pub trait Material: DynClone {
@@ -91,6 +91,12 @@ impl Dielectric {
     pub fn new(refraction_index: f32) -> Self {
         Self { refraction_index }
     }
+
+    fn reflectance(cosine: f32, ref_idx: f32) -> f32 {
+        let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+        let r0 = r0 * r0;
+        r0 + (1.0 - r0) * f32::powi(1.0 - cosine, 5)
+    }
 }
 impl Material for Dielectric {
     fn scatter(
@@ -107,8 +113,16 @@ impl Material for Dielectric {
             self.refraction_index
         };
         let unit_direction = vec3::unit_vector(r_in.direction());
-        let refracted = vec3::refract(unit_direction, rec.normal, ri);
-        *scattered = Ray::new(rec.p, refracted);
+        let cos_theta = f32::min(vec3::dot(-unit_direction, rec.normal), 1.0);
+        let sin_theta = f32::sqrt(1.0 - cos_theta * cos_theta);
+        let cannot_refract = ri * sin_theta > 1.0;
+        let direction: vec3::Vec3;
+        if cannot_refract || Dielectric::reflectance(cos_theta, ri) > random_double() {
+            direction = vec3::reflect(unit_direction, rec.normal);
+        } else {
+            direction = vec3::refract(unit_direction, rec.normal, ri);
+        }
+        *scattered = Ray::new(rec.p, direction);
         true
     }
 }

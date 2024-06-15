@@ -62,6 +62,7 @@ impl Camera {
                 );
             }
         }
+        eprintln!("\nDone.\n");
     }
 
     fn get_ray(&self, i: usize, j: usize) -> Ray {
