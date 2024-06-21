@@ -4,25 +4,30 @@ use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{dot, Point3, Vec3};
+use crate::aabb::AABB;
 
 pub struct Sphere {
     center: Point3,
     radius: f32,
     mat: Box<dyn Material>,
+    bbox: AABB,
 }
 
 impl Sphere {
     pub fn new(center: Point3, radius: f32, mat: Box<dyn Material>) -> Self {
+        let rvec = Vec3([radius, radius, radius]);
+        let bbox = AABB::around_points(center - rvec, center + rvec);
         Sphere {
             center,
             radius,
             mat,
+            bbox,
         }
     }
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
         let oc = self.center - r.origin();
         let a = r.direction().length_squared();
         let h = dot(r.direction(), oc);
@@ -48,5 +53,9 @@ impl Hittable for Sphere {
         rec.mat = self.mat.clone();
 
         true
+    }
+
+    fn bounding_box(&self) -> &AABB {
+        &self.bbox
     }
 }

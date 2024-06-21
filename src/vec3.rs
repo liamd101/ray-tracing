@@ -2,7 +2,7 @@ use crate::utils::{random_double, random_double_range};
 use std::ops;
 
 #[derive(Clone, Copy)]
-pub struct Vec3([f32; 3]);
+pub struct Vec3(pub [f32; 3]);
 pub type Point3 = Vec3;
 
 impl Default for Vec3 {

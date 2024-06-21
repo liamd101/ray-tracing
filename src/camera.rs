@@ -7,7 +7,6 @@ use crate::utils::degrees_to_radians;
 use crate::utils::random_double;
 use crate::utils::INFINITY;
 use crate::vec3;
-use crate::vec3::random_on_hemisphere;
 use crate::vec3::{Point3, Vec3};
 
 pub struct Camera {
@@ -155,7 +154,7 @@ impl Camera {
         }
 
         let mut rec: HitRecord = Default::default();
-        if world.hit(r, &Interval::new(0.001, INFINITY), &mut rec) {
+        if world.hit(r, &mut Interval::new(0.001, INFINITY), &mut rec) {
             let mut scattered = Ray::default();
             let mut attenuation = Color::default();
             if rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {

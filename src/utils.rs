@@ -1,4 +1,4 @@
-use rand::{self, Rng};
+use rand;
 
 pub const PI: f64 = 3.1415926535897932385;
 pub const INFINITY: f32 = f32::INFINITY;
