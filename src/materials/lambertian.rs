@@ -1,14 +1,23 @@
-use crate::{vec3, Color, HitRecord, Material, Ray};
+use crate::{vec3, Color, HitRecord, Material, Ray, SolidColor, Texture};
+
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Lambertian {
-    albedo: Color,
+    tex: Rc<dyn Texture>,
 }
 impl Lambertian {
-    pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+    pub fn new(color: Color) -> Self {
+        Self {
+            tex: Rc::new(SolidColor::new(color)),
+        }
+    }
+
+    pub fn with_texture(tex: Rc<dyn Texture>) -> Self {
+        Self { tex }
     }
 }
+
 impl Material for Lambertian {
     fn scatter(
         &self,
@@ -22,7 +31,7 @@ impl Material for Lambertian {
             scatter_direction = rec.normal;
         }
         *scattered = Ray::new(rec.p, scatter_direction, r_in.time());
-        *attenuation = self.albedo;
+        *attenuation = self.tex.value(rec.u, rec.v, &rec.p);
         true
     }
 }

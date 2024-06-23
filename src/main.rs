@@ -1,6 +1,5 @@
 use ray_tracing::{
-    utils, BvhNode, Camera, Color, Dielectric, HittableList, Lambertian, Material, Metal, Point3,
-    Sphere, Vec3,
+    utils, BvhNode, Camera, Checkerboard, Color, Dielectric, HittableList, Lambertian, Material, Metal, Point3, SolidColor, Sphere, Vec3
 };
 
 use std::rc::Rc;
@@ -8,7 +7,10 @@ use std::rc::Rc;
 fn main() {
     let mut world: HittableList = HittableList::new();
 
-    let material_ground = Lambertian::new(Color::new(0.5, 0.5, 0.5));
+    let even = Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1));
+    let odd = Rc::new(SolidColor::from_rgb(0.9, 0.9, 0.9));
+    let checker = Checkerboard::new(even, odd, 0.32);
+    let material_ground = Lambertian::with_texture(Rc::new(checker));
     world.add(Rc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,

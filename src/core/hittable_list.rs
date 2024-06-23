@@ -1,6 +1,4 @@
-use crate::{
-    Interval, NoneMaterial, Ray, AABB, {HitRecord, Hittable},
-};
+use crate::{HitRecord, Hittable, Interval, Ray, AABB};
 use std::rc::Rc;
 
 pub struct HittableList {
@@ -16,13 +14,7 @@ impl Default for HittableList {
 
 impl Hittable for HittableList {
     fn hit(&self, r: &Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord {
-            p: Default::default(),
-            normal: Default::default(),
-            mat: Box::new(NoneMaterial),
-            t: 0.0,
-            front_face: false,
-        };
+        let temp_rec: &mut HitRecord = &mut Default::default();
         let mut hit_anything = false;
         let mut closest_so_far = ray_t.max;
 
@@ -30,7 +22,7 @@ impl Hittable for HittableList {
             if object.hit(
                 r,
                 &mut Interval::new(ray_t.min, closest_so_far),
-                &mut temp_rec,
+                temp_rec,
             ) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;

@@ -4,9 +4,11 @@ use crate::{vec3, Interval, Material, NoneMaterial, Point3, Ray, Vec3, AABB};
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
-    pub t: f32,
-    pub front_face: bool,
     pub mat: Box<dyn Material>,
+    pub t: f32,
+    pub u: f32,
+    pub v: f32,
+    pub front_face: bool,
 }
 
 impl Default for HitRecord {
@@ -14,9 +16,11 @@ impl Default for HitRecord {
         HitRecord {
             p: Default::default(),
             normal: Default::default(),
-            t: 0.0,
-            front_face: false,
             mat: Box::new(NoneMaterial),
+            t: 0.0,
+            u: 0.0,
+            v: 0.0,
+            front_face: false,
         }
     }
 }
