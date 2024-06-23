@@ -1,10 +1,4 @@
-use crate::{
-    volume::aabb::AABB,
-    core::hittable::{HitRecord, Hittable},
-    core::hittable_list::HittableList,
-    core::interval::Interval,
-    core::ray::Ray,
-};
+use crate::{HitRecord, Hittable, HittableList, Interval, Ray, AABB};
 
 use std::rc::Rc;
 

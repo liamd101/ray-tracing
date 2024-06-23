@@ -1,13 +1,6 @@
 use crate::color::write_color;
-use crate::color::Color;
-use crate::hittable::{HitRecord, Hittable};
-use crate::interval::Interval;
-use crate::ray::Ray;
-use crate::utils::degrees_to_radians;
-use crate::utils::random_double;
-use crate::utils::INFINITY;
-use crate::vec3;
-use crate::vec3::{Point3, Vec3};
+use crate::utils::{degrees_to_radians, random_double, INFINITY};
+use crate::{vec3, Color, HitRecord, Hittable, Interval, Point3, Ray, Vec3};
 
 pub struct Camera {
     pub aspect_ratio: f32,

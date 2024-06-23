@@ -26,4 +26,3 @@ impl Material for NoneMaterial {
         false
     }
 }
-

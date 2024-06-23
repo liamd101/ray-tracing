@@ -1,9 +1,6 @@
-use crate::aabb::AABB;
-use crate::hittable::{HitRecord, Hittable};
-use crate::interval::Interval;
-use crate::material::NoneMaterial;
-use crate::ray::Ray;
-
+use crate::{
+    Interval, NoneMaterial, Ray, AABB, {HitRecord, Hittable},
+};
 use std::rc::Rc;
 
 pub struct HittableList {

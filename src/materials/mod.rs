@@ -1,9 +1,9 @@
-pub mod material;
-pub use material::Material;
+pub(crate) mod dialectric;
+pub(crate) mod lambertian;
+pub(crate) mod material;
+pub(crate) mod metal;
 
-pub mod metal;
-pub use metal::Metal;
-pub mod dialectric;
 pub use dialectric::Dielectric;
-pub mod lambertian;
 pub use lambertian::Lambertian;
+pub use material::{Material, NoneMaterial};
+pub use metal::Metal;

@@ -1,10 +1,4 @@
-use crate::core::hittable::{HitRecord, Hittable};
-use crate::core::interval::Interval;
-
-use crate::volume::aabb::AABB;
-use crate::material::{Material, NoneMaterial};
-use crate::core::ray::Ray;
-use crate::core::vec3::{dot, Point3, Vec3};
+use crate::{vec3, HitRecord, Hittable, Interval, Material, NoneMaterial, Point3, Ray, Vec3, AABB};
 
 pub struct Sphere {
     center: Point3,
@@ -69,7 +63,7 @@ impl Hittable for Sphere {
         };
         let oc = center - r.origin();
         let a = r.direction().length_squared();
-        let h = dot(r.direction(), oc);
+        let h = vec3::dot(r.direction(), oc);
         let c = oc.length_squared() - self.radius * self.radius;
         let discriminant = (h * h) - (a * c);
         if discriminant < 0.0 {
