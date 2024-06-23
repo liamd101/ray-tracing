@@ -1,6 +1,6 @@
 use rand;
 
-pub const PI: f64 = 3.1415926535897932385;
+pub const PI: f64 = std::f64::consts::PI;
 pub const INFINITY: f32 = f32::INFINITY;
 
 pub fn degrees_to_radians(degrees: f32) -> f32 {

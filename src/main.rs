@@ -1,23 +1,7 @@
-mod aabb;
-mod bvh;
-mod camera;
-mod color;
-mod hittable;
-mod hittable_list;
-mod interval;
-mod material;
-mod ray;
-mod sphere;
-mod utils;
-mod vec3;
-
-use bvh::BvhNode;
-use camera::Camera;
-use color::Color;
-use hittable_list::HittableList;
-use material::{Dielectric, Lambertian, Metal};
-use sphere::Sphere;
-use vec3::Point3;
+use ray_tracing::{
+    utils, BvhNode, Camera, Color, Dielectric, HittableList, Lambertian, Material, Metal, Point3,
+    Sphere, Vec3,
+};
 
 use std::rc::Rc;
 
@@ -40,12 +24,18 @@ fn main() {
                 b as f32 + 0.9 * utils::random_double(),
             );
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let sphere_material: Box<dyn material::Material>;
+                let sphere_material: Box<dyn Material>;
                 if choose_mat < 0.8 {
                     let albedo = Color::random() * Color::random();
                     sphere_material = Box::new(Lambertian::new(albedo));
-                    let center2 = center + Point3::new(0.0, utils::random_double_range(0.0, 0.5), 0.0);
-                    world.add(Rc::new(Sphere::moving(center, center2, 0.2, sphere_material)));
+                    let center2 =
+                        center + Point3::new(0.0, utils::random_double_range(0.0, 0.5), 0.0);
+                    world.add(Rc::new(Sphere::moving(
+                        center,
+                        center2,
+                        0.2,
+                        sphere_material,
+                    )));
                 } else if choose_mat < 0.95 {
                     let albedo = Color::random_range(0.5, 1.0);
                     let fuzz = utils::random_double_range(0.0, 0.5);
@@ -98,7 +88,7 @@ fn main() {
     cam.vfov = 20.0;
     cam.look_from = Point3::new(13.0, 2.0, 3.0);
     cam.look_at = Point3::new(0.0, 0.0, 0.0);
-    cam.vup = vec3::Vec3::new(0.0, 1.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
 
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;

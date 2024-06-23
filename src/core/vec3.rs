@@ -29,11 +29,11 @@ impl Vec3 {
     }
 
     pub fn length_squared(&self) -> f32 {
-        return self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2];
+        self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2]
     }
 
     pub fn length(&self) -> f32 {
-        return self.length_squared().sqrt();
+        self.length_squared().sqrt()
     }
 
     pub fn random() -> Self {

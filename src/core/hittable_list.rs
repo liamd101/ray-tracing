@@ -1,7 +1,7 @@
 use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::{Lambertian, Material, NoneMaterial};
+use crate::material::NoneMaterial;
 use crate::ray::Ray;
 
 use std::rc::Rc;
@@ -9,6 +9,12 @@ use std::rc::Rc;
 pub struct HittableList {
     pub objects: Vec<Rc<dyn Hittable>>,
     bbox: AABB,
+}
+
+impl Default for HittableList {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Hittable for HittableList {
@@ -24,7 +30,11 @@ impl Hittable for HittableList {
         let mut closest_so_far = ray_t.max;
 
         for object in self.objects.iter() {
-            if object.hit(r, &mut Interval::new(ray_t.min, closest_so_far), &mut temp_rec) {
+            if object.hit(
+                r,
+                &mut Interval::new(ray_t.min, closest_so_far),
+                &mut temp_rec,
+            ) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec.clone();
@@ -52,7 +62,7 @@ impl HittableList {
     }
 
     pub fn add(&mut self, object: Rc<dyn Hittable>) {
-        self.bbox = AABB::around_boxes(&self.bbox, &object.bounding_box());
+        self.bbox = AABB::around_boxes(&self.bbox, object.bounding_box());
         self.objects.push(object);
     }
 }

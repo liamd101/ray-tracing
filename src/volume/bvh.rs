@@ -1,9 +1,9 @@
 use crate::{
-    aabb::AABB,
-    hittable::{HitRecord, Hittable},
-    hittable_list::HittableList,
-    interval::Interval,
-    ray::Ray,
+    volume::aabb::AABB,
+    core::hittable::{HitRecord, Hittable},
+    core::hittable_list::HittableList,
+    core::interval::Interval,
+    core::ray::Ray,
 };
 
 use std::rc::Rc;
@@ -90,29 +90,5 @@ impl Hittable for BvhNode {
 
     fn bounding_box(&self) -> &AABB {
         &self.bbox
-    }
-}
-
-#[cfg(test)]
-mod test_hit {
-    use super::*;
-    use crate::{
-        material::NoneMaterial,
-        sphere::Sphere,
-        vec3::{Point3, Vec3},
-    };
-
-    #[test]
-    fn test_hit() {
-        let sphere1 = Rc::new(Sphere::stationary(
-            Point3::new(0.0, 0.0, 0.0),
-            1.0,
-            Box::new(NoneMaterial),
-        ));
-        let sphere2 = Rc::new(Sphere::stationary(
-            Point3::new(2.0, 0.0, 0.0),
-            1.0,
-            Box::new(NoneMaterial),
-        ));
     }
 }

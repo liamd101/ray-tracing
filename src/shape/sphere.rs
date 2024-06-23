@@ -1,10 +1,10 @@
-use crate::hittable::{HitRecord, Hittable};
-use crate::interval::Interval;
+use crate::core::hittable::{HitRecord, Hittable};
+use crate::core::interval::Interval;
 
-use crate::aabb::AABB;
+use crate::volume::aabb::AABB;
 use crate::material::{Material, NoneMaterial};
-use crate::ray::Ray;
-use crate::vec3::{dot, Point3, Vec3};
+use crate::core::ray::Ray;
+use crate::core::vec3::{dot, Point3, Vec3};
 
 pub struct Sphere {
     center: Point3,
