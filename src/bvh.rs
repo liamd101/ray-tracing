@@ -20,16 +20,16 @@ impl BvhNode {
     }
 
     fn new_optimized(objects: &mut [Rc<dyn Hittable>]) -> Self {
-        let axis = rand::random::<usize>() % 3;
-        let comparator = match axis {
-            0 => Self::box_x_compare,
-            1 => Self::box_y_compare,
-            _ => Self::box_z_compare,
-        };
-
         let bbox = objects.iter().fold(AABB::empty(), |acc, obj| {
             AABB::around_boxes(&acc, obj.bounding_box())
         });
+        let axis = bbox.longest_axis();
+        let comparator = match axis {
+            0 => Self::box_x_compare,
+            1 => Self::box_y_compare,
+            2 => Self::box_z_compare,
+            _ => panic!("Invalid axis"),
+        };
 
         objects.sort_by(comparator);
         let (left, right) = match objects.len() {

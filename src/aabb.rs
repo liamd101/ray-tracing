@@ -18,11 +18,7 @@ impl Default for AABB {
 
 impl AABB {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        AABB {
-            x,
-            y,
-            z,
-        }.pad_to_minimum()
+        AABB { x, y, z }.pad_to_minimum()
     }
 
     fn pad_to_minimum(mut self) -> Self {
@@ -75,6 +71,23 @@ impl AABB {
             1 => &self.y,
             2 => &self.z,
             _ => panic!("Invalid axis"),
+        }
+    }
+
+    pub fn longest_axis(&self) -> usize {
+        let x_size = self.x.size();
+        let y_size = self.y.size();
+        let z_size = self.z.size();
+        if x_size > y_size {
+            if x_size > z_size {
+                0
+            } else {
+                2
+            }
+        } else if y_size > z_size {
+            1
+        } else {
+            2
         }
     }
 
