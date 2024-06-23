@@ -87,12 +87,12 @@ fn main() {
         Box::new(material4),
     )));
 
-    // let world = BvhNode::from_list(world);
+    let world = BvhNode::from_list(world);
 
     let mut cam: Camera = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 1200;
-    cam.samples_per_pixel = 400;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 25;
 
     cam.vfov = 20.0;

@@ -87,22 +87,11 @@ impl AABB {
             let adinv = 1.0 / ray_dir.0[axis];
             let t0 = (ax.min - ray_orig.0[axis]) * adinv;
             let t1 = (ax.max - ray_orig.0[axis]) * adinv;
-            if t0 < t1 {
-                if t0 > ray_t.min {
-                    ray_t.min = t0;
-                }
-                if t1 < ray_t.max {
-                    ray_t.max = t1;
-                }
-            } else {
-                if t1 > ray_t.min {
-                    ray_t.min = t1;
-                }
-                if t0 < ray_t.max {
-                    ray_t.max = t0;
-                }
-            }
-            if ray_t.max <= ray_t.min {
+            let (t0, t1) = if adinv < 0.0 { (t1, t0) } else { (t0, t1) };
+            let tmin = if t0 > ray_t.min { t0 } else { ray_t.min };
+            let tmax = if t1 < ray_t.max { t1 } else { ray_t.max };
+
+            if tmax <= tmin {
                 return false;
             }
         }

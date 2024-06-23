@@ -32,7 +32,6 @@ impl BvhNode {
         });
 
         objects.sort_by(comparator);
-
         let (left, right) = match objects.len() {
             1 => {
                 let single_node = objects[0].clone();
@@ -85,12 +84,35 @@ impl Hittable for BvhNode {
         let hit_left = self.left.hit(r, ray_t, rec);
         let interval = &mut Interval::new(ray_t.min, if hit_left { rec.t } else { ray_t.max });
         let hit_right = self.right.hit(r, interval, rec);
-        
 
         hit_left || hit_right
     }
 
     fn bounding_box(&self) -> &AABB {
         &self.bbox
+    }
+}
+
+#[cfg(test)]
+mod test_hit {
+    use super::*;
+    use crate::{
+        material::NoneMaterial,
+        sphere::Sphere,
+        vec3::{Point3, Vec3},
+    };
+
+    #[test]
+    fn test_hit() {
+        let sphere1 = Rc::new(Sphere::stationary(
+            Point3::new(0.0, 0.0, 0.0),
+            1.0,
+            Box::new(NoneMaterial),
+        ));
+        let sphere2 = Rc::new(Sphere::stationary(
+            Point3::new(2.0, 0.0, 0.0),
+            1.0,
+            Box::new(NoneMaterial),
+        ));
     }
 }
