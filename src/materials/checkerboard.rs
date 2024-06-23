@@ -1,6 +1,7 @@
 use crate::{Color, Point3, Texture};
 use std::rc::Rc;
 
+#[derive(Clone)]
 pub struct Checkerboard {
     even: Rc<dyn Texture>,
     odd: Rc<dyn Texture>,

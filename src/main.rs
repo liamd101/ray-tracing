@@ -1,10 +1,11 @@
 use ray_tracing::{
-    utils, BvhNode, Camera, Checkerboard, Color, Dielectric, HittableList, Lambertian, Material, Metal, Point3, SolidColor, Sphere, Vec3
+    utils, BvhNode, Camera, Checkerboard, Color, Dielectric, HittableList, Lambertian, Material,
+    Metal, Point3, SolidColor, Sphere, Vec3,
 };
 
 use std::rc::Rc;
 
-fn main() {
+fn bouncing_spheres() {
     let mut world: HittableList = HittableList::new();
 
     let even = Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1));
@@ -96,4 +97,44 @@ fn main() {
     cam.focus_dist = 10.0;
 
     cam.render(&world);
+}
+
+fn checkered_spheres() {
+    let mut world: HittableList = HittableList::new();
+    let checker = Checkerboard::new(
+        Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
+        Rc::new(SolidColor::from_rgb(0.9, 0.9, 0.9)),
+        0.32,
+    );
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        Box::new(Lambertian::with_texture(Rc::new(checker.clone()))),
+    )));
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        Box::new(Lambertian::with_texture(Rc::new(checker))),
+    )));
+
+    // let world = BvhNode::from_list(world);
+
+    let mut cam = Camera::new();
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 1200;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.0;
+    cam.look_from = Point3::new(13.0, 2.0, 3.0);
+    cam.look_at = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.render(&world);
+}
+
+fn main() {
+    checkered_spheres();
 }
