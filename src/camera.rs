@@ -98,8 +98,9 @@ impl Camera {
             self.look_from
         };
         let ray_direction = pixel_sample - ray_origin;
+        let ray_time = random_double();
 
-        Ray::new(ray_origin, ray_direction)
+        Ray::new(ray_origin, ray_direction, ray_time)
     }
 
     fn defocus_disk_sample(&self) -> Point3 {

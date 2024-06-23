@@ -47,7 +47,7 @@ impl Interval {
         let padding = delta / 2.0;
         Interval {
             min: self.min - padding,
-            max: self.max - padding,
+            max: self.max + padding,
         }
     }
 

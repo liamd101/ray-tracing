@@ -4,10 +4,10 @@ use crate::interval::Interval;
 use crate::material::{Lambertian, Material, NoneMaterial};
 use crate::ray::Ray;
 
-use std::sync::Arc;
+use std::rc::Rc;
 
 pub struct HittableList {
-    pub objects: Vec<Arc<dyn Hittable>>,
+    pub objects: Vec<Rc<dyn Hittable>>,
     bbox: AABB,
 }
 
@@ -51,7 +51,7 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Arc<dyn Hittable>) {
+    pub fn add(&mut self, object: Rc<dyn Hittable>) {
         self.bbox = AABB::around_boxes(&self.bbox, &object.bounding_box());
         self.objects.push(object);
     }

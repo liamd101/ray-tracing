@@ -22,7 +22,25 @@ impl AABB {
             x,
             y,
             z,
+        }.pad_to_minimum()
+    }
+
+    fn pad_to_minimum(mut self) -> Self {
+        let delta = 0.0001;
+        if self.x.size() <= delta {
+            self.x.expand(delta);
         }
+        if self.y.size() <= delta {
+            self.y.expand(delta);
+        }
+        if self.z.size() <= delta {
+            self.z.expand(delta);
+        }
+        self
+    }
+
+    pub fn empty() -> Self {
+        Self::default()
     }
 
     pub fn around_points(a: Point3, b: Point3) -> Self {
@@ -41,14 +59,14 @@ impl AABB {
         } else {
             Interval::new(b.z(), a.z())
         };
-        AABB::new(x, y, z)
+        AABB::new(x, y, z).pad_to_minimum()
     }
 
     pub fn around_boxes(a: &AABB, b: &AABB) -> Self {
         let x = Interval::around_intervals(&a.x, &b.x);
         let y = Interval::around_intervals(&a.y, &b.y);
         let z = Interval::around_intervals(&a.z, &b.z);
-        AABB::new(x, y, z)
+        AABB::new(x, y, z).pad_to_minimum()
     }
 
     pub fn axis_interval(&self, axis: usize) -> &Interval {
@@ -67,10 +85,8 @@ impl AABB {
         for axis in 0..3 {
             let ax = self.axis_interval(axis);
             let adinv = 1.0 / ray_dir.0[axis];
-
             let t0 = (ax.min - ray_orig.0[axis]) * adinv;
             let t1 = (ax.max - ray_orig.0[axis]) * adinv;
-
             if t0 < t1 {
                 if t0 > ray_t.min {
                     ray_t.min = t0;
@@ -86,7 +102,6 @@ impl AABB {
                     ray_t.max = t0;
                 }
             }
-
             if ray_t.max <= ray_t.min {
                 return false;
             }
