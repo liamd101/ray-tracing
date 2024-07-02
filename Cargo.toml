@@ -9,5 +9,6 @@ rr = "run --release"
 br = "build --release"
 
 [dependencies]
+clap = { version = "4.5.8", features = ["derive"] }
 dyn-clone = "1.0.17"
 rand = "0.8.5"
