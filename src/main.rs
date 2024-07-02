@@ -117,7 +117,7 @@ fn checkered_spheres() {
         Box::new(Lambertian::with_texture(Rc::new(checker))),
     )));
 
-    // let world = BvhNode::from_list(world);
+    let world = BvhNode::from_list(world);
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
