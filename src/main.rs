@@ -1,7 +1,9 @@
 use ray_tracing::{
-    utils, BvhNode, Camera, Checkerboard, Color, Dielectric, HittableList, Lambertian, Material,
-    Metal, Point3, SolidColor, Sphere, Vec3,
+    utils, BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList,
+    Lambertian, Material, Metal, Point3, SolidColor, Sphere, Vec3,
 };
+
+use clap::{Parser, Subcommand};
 
 use std::rc::Rc;
 
@@ -84,9 +86,10 @@ fn bouncing_spheres() {
 
     let mut cam: Camera = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
+    cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 25;
+    cam.background = Color::new(0.70, 0.80, 1.00);
 
     cam.vfov = 20.0;
     cam.look_from = Point3::new(13.0, 2.0, 3.0);
@@ -121,9 +124,10 @@ fn checkered_spheres() {
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
+    cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color::new(0.70, 0.80, 1.00);
 
     cam.vfov = 20.0;
     cam.look_from = Point3::new(13.0, 2.0, 3.0);
@@ -135,6 +139,69 @@ fn checkered_spheres() {
     cam.render(&world);
 }
 
+fn simple_light() {
+    let mut world: HittableList = HittableList::new();
+    let checker = Checkerboard::new(
+        Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
+        Rc::new(SolidColor::from_rgb(0.9, 0.9, 0.9)),
+        0.32,
+    );
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Box::new(Lambertian::with_texture(Rc::new(checker))),
+    )));
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Box::new(Lambertian::new(Color::new(0.5, 0.5, 0.5))),
+    )));
+
+    let diffuse_light = DiffuseLight::from_color(Color::new(4.0, 4.0, 4.0));
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, 7.0, 0.0),
+        2.0,
+        Box::new(diffuse_light),
+    )));
+
+    let world = BvhNode::from_list(world);
+
+    let mut cam = Camera::new();
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 1200;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.background = Color::new(0.0, 0.0, 0.0);
+
+    cam.vfov = 20.0;
+    cam.look_from = Point3::new(26.0, 3.0, 6.0);
+    cam.look_at = Point3::new(0.0, 2.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+    cam.defocus_angle = 0.0;
+
+    cam.render(&world);
+}
+
+
+#[derive(Parser)]
+#[command(author, version, about, long_about=None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand, Debug)]
+enum Command {
+    BouncingSpheres,
+    CheckeredSpheres,
+    SimpleLight,
+}
+
 fn main() {
-    checkered_spheres();
+    let args = Cli::parse();
+    match args.command {
+        Command::BouncingSpheres => bouncing_spheres(),
+        Command::CheckeredSpheres => checkered_spheres(),
+        Command::SimpleLight => simple_light(),
+    }
 }
