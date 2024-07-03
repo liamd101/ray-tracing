@@ -1,6 +1,6 @@
 use ray_tracing::{
     utils, BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList,
-    Lambertian, Material, Metal, Point3, SolidColor, Sphere, Vec3,
+    Lambertian, Material, Metal, Point3, Quadrilateral as Quad, SolidColor, Sphere, Vec3,
 };
 
 use clap::{Parser, Subcommand};
@@ -182,6 +182,64 @@ fn simple_light() {
     cam.render(&world);
 }
 
+fn quads() {
+    let mut world = HittableList::new();
+
+    let left_red = Lambertian::new(Color::new(1.0, 0.2, 0.2));
+    let back_green = Lambertian::new(Color::new(0.2, 1.0, 0.2));
+    let right_blue = Lambertian::new(Color::new(0.2, 0.2, 1.0));
+    let upper_orange = Lambertian::new(Color::new(1.0, 0.5, 0.0));
+    let lower_teal = Lambertian::new(Color::new(0.2, 0.8, 0.8));
+
+    world.add(Rc::new(Quad::new(
+        Point3::new(-3.0, -2.0, 5.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        Box::new(left_red),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(-2.0, -2.0, 0.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        Box::new(back_green),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(3.0, -2.0, 1.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        Box::new(right_blue),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(-2.0, 3.0, 1.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        Box::new(upper_orange),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(-2.0, -3.0, 5.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        Box::new(lower_teal),
+    )));
+
+    let world = BvhNode::from_list(world);
+
+    let mut cam = Camera::new();
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.background = Color::new(0.70, 0.80, 1.00);
+
+    cam.vfov = 80.0;
+    cam.look_from = Point3::new(0.0, 0.0, 9.0);
+    cam.look_at = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.render(&world);
+}
 
 #[derive(Parser)]
 #[command(author, version, about, long_about=None)]
@@ -195,6 +253,7 @@ enum Command {
     BouncingSpheres,
     CheckeredSpheres,
     SimpleLight,
+    Quads,
 }
 
 fn main() {
@@ -203,5 +262,6 @@ fn main() {
         Command::BouncingSpheres => bouncing_spheres(),
         Command::CheckeredSpheres => checkered_spheres(),
         Command::SimpleLight => simple_light(),
+        Command::Quads => quads(),
     }
 }
