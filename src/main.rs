@@ -171,7 +171,7 @@ fn simple_light() {
     cam.image_width = 1200;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
-    cam.background = Color::new(0.0, 0.0, 0.0);
+    cam.background = Color::new(1.0, 1.0, 1.0);
 
     cam.vfov = 20.0;
     cam.look_from = Point3::new(26.0, 3.0, 6.0);
@@ -241,6 +241,70 @@ fn quads() {
     cam.render(&world);
 }
 
+fn cornell_box() {
+    let mut world = HittableList::new();
+
+    let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
+    let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
+    let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
+    let light = DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0));
+
+    world.add(Rc::new(Quad::new(
+        Point3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        Box::new(green),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        Box::new(red),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(343.0, 554.0, 332.0),
+        Vec3::new(-130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -105.0),
+        Box::new(light),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        Box::new(white.clone()),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(555.0, 555.0, 555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        Box::new(white.clone()),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Box::new(white.clone()),
+    )));
+    let world = BvhNode::from_list(world);
+
+
+    let mut cam = Camera::new();
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 600;
+    cam.samples_per_pixel = 200;
+    cam.max_depth = 50;
+    cam.background = Color::new(0.0, 0.0, 0.0);
+
+    cam.vfov = 30.0;
+    cam.look_from = Point3::new(278.0, 278.0, -800.0);
+    cam.look_at = Point3::new(278.0, 278.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.render(&world);
+}
+
 #[derive(Parser)]
 #[command(author, version, about, long_about=None)]
 struct Cli {
@@ -254,6 +318,7 @@ enum Command {
     CheckeredSpheres,
     SimpleLight,
     Quads,
+    CornellBox,
 }
 
 fn main() {
@@ -263,5 +328,6 @@ fn main() {
         Command::CheckeredSpheres => checkered_spheres(),
         Command::SimpleLight => simple_light(),
         Command::Quads => quads(),
+        Command::CornellBox => cornell_box(),
     }
 }
