@@ -7,6 +7,7 @@ pub struct Camera {
     pub image_width: usize,
     pub samples_per_pixel: usize,
     pub max_depth: usize,
+    pub background: Color,
     pub vfov: f32,
     pub look_from: Point3,
     pub look_at: Point3,
@@ -33,6 +34,7 @@ impl Default for Camera {
             image_width: 400,
             samples_per_pixel: 10,
             max_depth: 10,
+            background: Color::new(0.0, 0.0, 0.0),
             vfov: 90.0,
             look_from: Point3::new(0.0, 0.0, 0.0),
             look_at: Point3::new(0.0, 0.0, -1.0),
@@ -69,7 +71,7 @@ impl Camera {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel {
                     let ray = self.get_ray(i, j);
-                    pixel_color += Camera::ray_color(&ray, self.max_depth, world);
+                    pixel_color += self.ray_color(&ray, self.max_depth, world);
                 }
                 write_color(
                     &mut std::io::stdout(),
@@ -142,23 +144,23 @@ impl Camera {
         self.defocus_disk_v = defocus_radius * self.v;
     }
 
-    fn ray_color(r: &Ray, depth: usize, world: &dyn Hittable) -> Color {
+    fn ray_color(&self, r: &Ray, depth: usize, world: &dyn Hittable) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
 
         let mut rec: HitRecord = Default::default();
-        if world.hit(r, &mut Interval::new(0.001, INFINITY), &mut rec) {
-            let mut scattered = Ray::default();
-            let mut attenuation = Color::default();
-            if rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
-                return attenuation * Camera::ray_color(&scattered, depth - 1, world);
-            }
-            return Color::new(0.0, 0.0, 0.0);
+        if !world.hit(r, &mut Interval::new(0.001, INFINITY), &mut rec) {
+            return self.background;
         }
 
-        let unit_direction = vec3::unit_vector(r.direction());
-        let a = 0.5 * (unit_direction.y() + 1.0);
-        (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+        let mut scattered = Ray::default();
+        let mut attenuation = Color::default();
+        let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
+        if !rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+            return color_from_emission;
+        }
+        let color_from_scatter = attenuation * self.ray_color(&scattered, depth - 1, world);
+        color_from_emission + color_from_scatter
     }
 }
