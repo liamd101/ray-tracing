@@ -1,6 +1,7 @@
 use ray_tracing::{
     utils, BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList,
     Lambertian, Material, Metal, Point3, Quadrilateral as Quad, SolidColor, Sphere, Vec3,
+    new_box,
 };
 
 use clap::{Parser, Subcommand};
@@ -283,6 +284,17 @@ fn cornell_box() {
         Point3::new(0.0, 0.0, 555.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
+        Box::new(white.clone()),
+    )));
+
+    world.add(Rc::new(new_box(
+        Point3::new(130.0, 0.0, 65.0),
+        Point3::new(295.0, 165.0, 230.0),
+        Box::new(white.clone()),
+    )));
+    world.add(Rc::new(new_box(
+        Point3::new(265.0, 0.0, 295.0),
+        Point3::new(430.0, 330.0, 460.0),
         Box::new(white.clone()),
     )));
 
