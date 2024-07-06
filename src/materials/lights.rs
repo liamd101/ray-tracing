@@ -1,4 +1,4 @@
-use crate::{Material, Texture, Color};
+use crate::{Material, Texture, Color, Point3};
 
 use std::rc::Rc;
 
@@ -29,7 +29,7 @@ impl Material for DiffuseLight {
         false
     }
 
-    fn emitted(&self, u: f32, v: f32, p: &crate::Point3) -> Color {
+    fn emitted(&self, u: f32, v: f32, p: &Point3) -> Color {
         self.emit.value(u, v, p)
     }
 }
