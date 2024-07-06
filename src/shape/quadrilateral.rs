@@ -13,13 +13,14 @@ pub struct Quadrilateral {
 
 impl Quadrilateral {
     pub fn new(q: Point3, u: Vec3, v: Vec3, material: Box<dyn Material>) -> Self {
-        let bbox_diagonal_1 = AABB::around_points(q, q + u + v);
-        let bbox_diagonal_2 = AABB::around_points(q + u, q + v);
-        let bbox = AABB::around_boxes(&bbox_diagonal_1, &bbox_diagonal_2);
         let n = vec3::cross(u, v);
         let normal = vec3::unit_vector(n);
         let d = vec3::dot(normal, q);
         let w = n / vec3::dot(n, n);
+
+        let bbox_diagonal_1 = AABB::around_points(q, q + u + v);
+        let bbox_diagonal_2 = AABB::around_points(q + u, q + v);
+        let bbox = AABB::around_boxes(&bbox_diagonal_1, &bbox_diagonal_2);
 
         Self {
             q,
@@ -71,7 +72,7 @@ impl Hittable for Quadrilateral {
         rec.t = t;
         rec.p = intersection;
         rec.mat = self.material.clone();
-        rec.normal = self.normal;
+        rec.set_face_normal(r, self.normal);
 
         true
     }
