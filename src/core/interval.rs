@@ -1,3 +1,4 @@
+#[derive(Clone, Debug)]
 pub struct Interval {
     pub min: f32,
     pub max: f32,
@@ -60,6 +61,17 @@ impl Interval {
         Self {
             min: f32::NEG_INFINITY,
             max: f32::INFINITY,
+        }
+    }
+}
+
+impl std::ops::Add<f32> for Interval {
+    type Output = Interval;
+
+    fn add(self, rhs: f32) -> Self::Output {
+        Interval {
+            min: self.min + rhs,
+            max: self.max + rhs,
         }
     }
 }
