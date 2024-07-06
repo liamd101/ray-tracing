@@ -19,11 +19,7 @@ impl Hittable for HittableList {
         let mut closest_so_far = ray_t.max;
 
         for object in self.objects.iter() {
-            if object.hit(
-                r,
-                &mut Interval::new(ray_t.min, closest_so_far),
-                temp_rec,
-            ) {
+            if object.hit(r, &mut Interval::new(ray_t.min, closest_so_far), temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec.clone();

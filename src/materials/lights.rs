@@ -1,4 +1,4 @@
-use crate::{Material, Texture, Color, Point3};
+use crate::{Color, Material, Point3, Texture};
 
 use std::rc::Rc;
 
@@ -15,7 +15,7 @@ impl DiffuseLight {
         Self {
             emit: Rc::new(crate::SolidColor::new(color)),
         }
-    }   
+    }
 }
 
 impl Material for DiffuseLight {
