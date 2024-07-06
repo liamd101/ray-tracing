@@ -171,7 +171,7 @@ fn simple_light() {
     cam.image_width = 1200;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
-    cam.background = Color::new(1.0, 1.0, 1.0);
+    cam.background = Color::new(0.0, 0.0, 0.0);
 
     cam.vfov = 20.0;
     cam.look_from = Point3::new(26.0, 3.0, 6.0);
@@ -285,8 +285,8 @@ fn cornell_box() {
         Vec3::new(0.0, 555.0, 0.0),
         Box::new(white.clone()),
     )));
-    let world = BvhNode::from_list(world);
 
+    let world = BvhNode::from_list(world);
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 1.0;
@@ -295,7 +295,7 @@ fn cornell_box() {
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
-    cam.vfov = 30.0;
+    cam.vfov = 40.0;
     cam.look_from = Point3::new(278.0, 278.0, -800.0);
     cam.look_at = Point3::new(278.0, 278.0, 0.0);
     cam.vup = Vec3::new(0.0, 1.0, 0.0);

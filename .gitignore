@@ -1,5 +1,5 @@
 /target
-image.ppm
+*.ppm
 **/.DS_Store
 .idea/
 .vscode/

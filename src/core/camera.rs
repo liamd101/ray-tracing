@@ -157,9 +157,11 @@ impl Camera {
         let mut scattered = Ray::default();
         let mut attenuation = Color::default();
         let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
+
         if !rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
             return color_from_emission;
         }
+
         let color_from_scatter = attenuation * self.ray_color(&scattered, depth - 1, world);
         color_from_emission + color_from_scatter
     }
