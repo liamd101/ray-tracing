@@ -52,6 +52,19 @@ impl Perlin {
         Self::trilinear_interp(c, u, v, w)
     }
 
+    fn turb(&self, p: &crate::Point3, depth: i32) -> f32 {
+        let mut accum = 0.0;
+        let mut temp_p = *p;
+        let mut weight = 1.0;
+
+        for _ in 0..depth {
+            accum += weight * self.noise(&temp_p);
+            weight *= 0.5;
+            temp_p *= 2.0;
+        }
+        accum.abs()
+    }
+
     fn trilinear_interp(c: [[[crate::Vec3; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 {
         let uu = u * u * (3.0 - 2.0 * u);
         let vv = v * v * (3.0 - 2.0 * v);
@@ -100,6 +113,6 @@ impl PerlinNoise {
 }
 impl Texture for PerlinNoise {
     fn value(&self, u: f32, v: f32, p: &crate::Point3) -> crate::Color {
-        crate::Color::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.noise.noise(&(*p * self.scale)))
+        crate::Color::new(1.0, 1.0, 1.0) * self.noise.turb(&p, 7)
     }
 }
