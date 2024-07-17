@@ -2,7 +2,6 @@ use crate::Texture;
 
 pub struct Perlin {
     rand_vec: Vec<crate::Vec3>,
-    rand_float: Vec<f32>,
     perm_x: Vec<i32>,
     perm_y: Vec<i32>,
     perm_z: Vec<i32>,
@@ -14,13 +13,11 @@ impl Perlin {
         let rand_vec = (0..point_count)
             .map(|_| crate::vec3::unit_vector(crate::Vec3::random_range(-1.0, 1.0)))
             .collect();
-        let rand_float = (0..point_count).map(|_| rand::random::<f32>()).collect();
         let perm_x = Self::perlin_generate_perm();
         let perm_y = Self::perlin_generate_perm();
         let perm_z = Self::perlin_generate_perm();
         Self {
             rand_vec,
-            rand_float,
             perm_x,
             perm_y,
             perm_z,
@@ -71,14 +68,14 @@ impl Perlin {
         let ww = w * w * (3.0 - 2.0 * w);
 
         let mut accum = 0.0;
-        for i in 0..2 {
-            for j in 0..2 {
-                for k in 0..2 {
+        for (i, c) in c.iter().enumerate() {
+            for (j, c) in c.iter().enumerate() {
+                for (k, c) in c.iter().enumerate() {
                     let weight_v = crate::Vec3::new(u - i as f32, v - j as f32, w - k as f32);
                     accum += (i as f32 * uu + (1.0 - i as f32) * (1.0 - uu))
                         * (j as f32 * vv + (1.0 - j as f32) * (1.0 - vv))
                         * (k as f32 * ww + (1.0 - k as f32) * (1.0 - ww))
-                        * crate::vec3::dot(c[i][j][k], weight_v);
+                        * crate::vec3::dot(*c, weight_v);
                 }
             }
         }
@@ -112,7 +109,8 @@ impl PerlinNoise {
     }
 }
 impl Texture for PerlinNoise {
-    fn value(&self, u: f32, v: f32, p: &crate::Point3) -> crate::Color {
-        crate::Color::new(1.0, 1.0, 1.0) * self.noise.turb(&p, 7)
+    fn value(&self, _: f32, _: f32, p: &crate::Point3) -> crate::Color {
+        crate::Color::new(0.5, 0.5, 0.5)
+            * (1.0 + (self.scale * p.z() + 10.0 * self.noise.turb(p, 7)).sin())
     }
 }
