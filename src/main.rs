@@ -1,7 +1,7 @@
 use ray_tracing::{
     new_box, utils, BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList,
     Lambertian, Material, Metal, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere,
-    Translate, Vec3,
+    Translate, Vec3, PerlinNoise
 };
 
 use clap::{Parser, Subcommand};
@@ -325,6 +325,42 @@ fn cornell_box() {
     cam.render(&world);
 }
 
+fn perlin_spheres() {
+    let mut world: HittableList = HittableList::new();
+
+    let per_text = Rc::new(PerlinNoise::new());
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Box::new(Lambertian::with_texture(per_text.clone())),
+    )));
+
+    world.add(Rc::new(Sphere::stationary(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Box::new(Lambertian::with_texture(per_text)),
+    )));
+
+    let world = BvhNode::from_list(world);
+
+    let mut cam: Camera = Camera::new();
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.background = Color::new(0.70, 0.80, 1.00);
+
+    cam.vfov = 20.0;
+    cam.look_from = Point3::new(13.0, 2.0, 3.0);
+    cam.look_at = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
+
+    cam.render(&world);
+}
+
 #[derive(Parser)]
 #[command(author, version, about, long_about=None)]
 struct Cli {
@@ -339,6 +375,7 @@ enum Command {
     SimpleLight,
     Quads,
     CornellBox,
+    PerlinSpheres,
 }
 
 fn main() {
@@ -349,5 +386,6 @@ fn main() {
         Command::SimpleLight => simple_light(),
         Command::Quads => quads(),
         Command::CornellBox => cornell_box(),
+        Command::PerlinSpheres => perlin_spheres(),
     }
 }
