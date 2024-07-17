@@ -328,7 +328,7 @@ fn cornell_box() {
 fn perlin_spheres() {
     let mut world: HittableList = HittableList::new();
 
-    let per_text = Rc::new(PerlinNoise::new());
+    let per_text = Rc::new(PerlinNoise::new(4.0));
     world.add(Rc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,

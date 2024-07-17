@@ -25,9 +25,12 @@ impl Perlin {
     }
 
     pub fn noise(&self, p: &crate::Point3) -> f32 {
-        let u = p.x() - p.x().floor();
-        let v = p.y() - p.y().floor();
-        let w = p.z() - p.z().floor();
+        let mut u = p.x() - p.x().floor();
+        let mut v = p.y() - p.y().floor();
+        let mut w = p.z() - p.z().floor();
+        u = u * u * (3.0 - 2.0 * u);
+        v = v * v * (3.0 - 2.0 * v);
+        w = w * w * (3.0 - 2.0 * w);
 
         let i = p.x().floor() as i32;
         let j = p.y().floor() as i32;
@@ -79,16 +82,18 @@ impl Perlin {
 
 pub struct PerlinNoise {
     noise: Perlin,
+    scale: f32,
 }
 impl PerlinNoise {
-    pub fn new() -> Self {
+    pub fn new(scale: f32) -> Self {
         Self {
             noise: Perlin::new(),
+            scale,
         }
     }
 }
 impl Texture for PerlinNoise {
     fn value(&self, u: f32, v: f32, p: &crate::Point3) -> crate::Color {
-        crate::Color::new(1.0, 1.0, 1.0) * self.noise.noise(p)
+        crate::Color::new(1.0, 1.0, 1.0) * self.noise.noise(&(*p * self.scale))
     }
 }
