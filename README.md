@@ -2,7 +2,7 @@
 
 A physically-based renderer implemented in Rust, based on Peter Shirley's "Ray Tracing in a Weekend" and "Ray Tracing: The Next Week" book series.
 
-<img src="images/bouncing-spheres.ppm" alt="Bouncing Spheres" width="400"/>
+<img src="images/bouncing-spheres.png" alt="Bouncing Spheres" width="400"/>
 
 ## Overview
 
@@ -28,18 +28,18 @@ USAGE:
     ray_tracer [SUBCOMMAND]
 
 SUBCOMMANDS:
-    BouncingSpheres    Renders a scene with dynamically moving spheres
-    CheckeredSpheres   Renders a scene with checkered texture spheres
-    SimpleLight        Renders a simple light emission demo
-    Quads              Renders a scene with various quadrilateral surfaces
-    CornellBox         Renders the classic Cornell Box scene
-    PerlinSpheres      Renders a scene with Perlin noise textured spheres
+    bouncing-spheres    Renders a scene with dynamically moving spheres
+    checkered-spheres   Renders a scene with checkered texture spheres
+    simple-light        Renders a simple light emission demo
+    quads               Renders a scene with various quadrilateral surfaces
+    cornell-box         Renders the classic Cornell Box scene
+    perlin-spheres      Renders a scene with Perlin noise textured spheres
 ```
 
 To render a scene, run:
 
 ```bash
-cargo run --release -- CornellBox > cornell_box.ppm
+cargo run --release -- bouncing-spheres > bouncing-spheres.ppm
 ```
 
 This will output a PPM image file which can be converted to PNG or other formats using tools like ImageMagick.
