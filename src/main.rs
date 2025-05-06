@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand};
 
 use std::rc::Rc;
 
-fn bouncing_spheres() {
+fn bouncing_spheres(image_width: usize) {
     let mut world: HittableList = HittableList::new();
 
     let even = Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1));
@@ -87,7 +87,7 @@ fn bouncing_spheres() {
 
     let mut cam: Camera = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
+    cam.image_width = image_width;
     cam.samples_per_pixel = 100;
     cam.max_depth = 25;
     cam.background = Color::new(0.70, 0.80, 1.00);
@@ -103,7 +103,7 @@ fn bouncing_spheres() {
     cam.render(&world);
 }
 
-fn checkered_spheres() {
+fn checkered_spheres(image_width: usize) {
     let mut world: HittableList = HittableList::new();
     let checker = Checkerboard::new(
         Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
@@ -125,7 +125,7 @@ fn checkered_spheres() {
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
+    cam.image_width = image_width;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
     cam.background = Color::new(0.70, 0.80, 1.00);
@@ -140,7 +140,7 @@ fn checkered_spheres() {
     cam.render(&world);
 }
 
-fn simple_light() {
+fn simple_light(image_width: usize) {
     let mut world: HittableList = HittableList::new();
     let checker = Checkerboard::new(
         Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
@@ -169,7 +169,7 @@ fn simple_light() {
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
+    cam.image_width = image_width;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
@@ -183,7 +183,7 @@ fn simple_light() {
     cam.render(&world);
 }
 
-fn quads() {
+fn quads(image_width: usize) {
     let mut world = HittableList::new();
 
     let left_red = Lambertian::new(Color::new(1.0, 0.2, 0.2));
@@ -227,7 +227,7 @@ fn quads() {
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 1.0;
-    cam.image_width = 400;
+    cam.image_width = image_width;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
     cam.background = Color::new(0.70, 0.80, 1.00);
@@ -242,7 +242,7 @@ fn quads() {
     cam.render(&world);
 }
 
-fn cornell_box() {
+fn cornell_box(image_width: usize) {
     let mut world = HittableList::new();
 
     let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
@@ -310,7 +310,7 @@ fn cornell_box() {
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 1.0;
-    cam.image_width = 600;
+    cam.image_width = image_width;
     cam.samples_per_pixel = 200;
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
@@ -325,7 +325,7 @@ fn cornell_box() {
     cam.render(&world);
 }
 
-fn perlin_spheres() {
+fn perlin_spheres(image_width: usize) {
     let mut world: HittableList = HittableList::new();
 
     let per_text = Rc::new(PerlinNoise::new(4.0));
@@ -345,7 +345,7 @@ fn perlin_spheres() {
 
     let mut cam: Camera = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
+    cam.image_width = image_width;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
     cam.background = Color::new(0.70, 0.80, 1.00);
@@ -366,6 +366,9 @@ fn perlin_spheres() {
 struct Cli {
     #[command(subcommand)]
     command: Command,
+
+    #[arg(short = 'w', long, default_value_t = 400)]
+    image_width: usize,
 }
 
 #[derive(Subcommand, Debug)]
@@ -381,11 +384,11 @@ enum Command {
 fn main() {
     let args = Cli::parse();
     match args.command {
-        Command::BouncingSpheres => bouncing_spheres(),
-        Command::CheckeredSpheres => checkered_spheres(),
-        Command::SimpleLight => simple_light(),
-        Command::Quads => quads(),
-        Command::CornellBox => cornell_box(),
-        Command::PerlinSpheres => perlin_spheres(),
+        Command::BouncingSpheres => bouncing_spheres(args.image_width),
+        Command::CheckeredSpheres => checkered_spheres(args.image_width),
+        Command::SimpleLight => simple_light(args.image_width),
+        Command::Quads => quads(args.image_width),
+        Command::CornellBox => cornell_box(args.image_width),
+        Command::PerlinSpheres => perlin_spheres(args.image_width),
     }
 }
