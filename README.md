@@ -2,7 +2,7 @@
 
 A physically-based renderer implemented in Rust, based on Peter Shirley's "Ray Tracing in a Weekend" and "Ray Tracing: The Next Week" book series.
 
-<img src="images/bouncing-spheres.png" alt="Bouncing Spheres" width="400"/>
+<img src="images/bouncing-spheres.png" alt="Bouncing Spheres" width="1600"/>
 
 ## Overview
 
