@@ -114,6 +114,10 @@ impl AABB {
 
         true
     }
+
+    pub fn area(&self) -> f32 {
+        self.x.size() * self.y.size() * self.z.size()
+    }
 }
 
 impl ops::Add<Point3> for &AABB {
