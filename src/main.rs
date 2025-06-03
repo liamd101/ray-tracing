@@ -85,6 +85,7 @@ fn bouncing_spheres(image_width: usize) {
         Box::new(material4),
     )));
 
+
     let world = BvhNode::from_list(world);
 
     let mut cam: Camera = Camera::new();
