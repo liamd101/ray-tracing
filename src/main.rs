@@ -464,7 +464,7 @@ fn cornell_smoke(image_width: usize, file_path: String) {
     cam.render(&world);
 }
 
-fn final_scene(file_path: String) {
+fn final_scene(image_width: usize, file_path: String) {
     let mut boxes1 = HittableList::new();
     let ground = Lambertian::new(Color::new(0.48, 0.83, 0.53));
 
@@ -517,13 +517,29 @@ fn final_scene(file_path: String) {
         Arc::new(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0)),
     )));
 
-    /* TODO
-    let boundary = Sphere::stationary(Point3::new(360.0,150.0,145.0), 70.0, Arc::new(Dielectric::new(1.5)));
-    world.add(Arc::new(boundary));
-    world.add(Arc::new(Constant_medium::new(boundary, 0.2, Color::new(0.2, 0.4, 0.9))));
-    let boundary = Sphere::stationary(Point3::new(0.0,0.0,0.0), 5000.0, Arc::new(Dielectric::new(1.5)));
-    world.add(Arc::new(Constant_medium::new(boundary, .0001, Color::new(1.0,1.0,1.0))));
+    let boundary = Arc::new(Sphere::stationary(
+        Point3::new(360.0, 150.0, 145.0),
+        70.0,
+        Arc::new(Dielectric::new(1.5)),
+    ));
+    world.add(boundary.clone());
+    world.add(Arc::new(ConstantMedium::with_color(
+        boundary,
+        0.2,
+        Color::new(0.2, 0.4, 0.9),
+    )));
+    let boundary = Arc::new(Sphere::stationary(
+        Point3::new(0.0, 0.0, 0.0),
+        5000.0,
+        Arc::new(Dielectric::new(1.5)),
+    ));
+    world.add(Arc::new(ConstantMedium::with_color(
+        boundary,
+        0.0001,
+        Color::new(1.0, 1.0, 1.0),
+    )));
 
+    /* TODO
     auto emat = make_shared<lambertian>(make_shared<image_texture>("earthmap.jpg"));
     world.add(make_shared<sphere>(point3(400,200,400), 100, emat));
     auto pertext = make_shared<noise_texture>(0.2);
@@ -550,8 +566,8 @@ fn final_scene(file_path: String) {
     let mut cam = Camera::new();
 
     cam.aspect_ratio = 1.0;
-    cam.image_width = 800;
-    cam.samples_per_pixel = 1_000;
+    cam.image_width = image_width;
+    cam.samples_per_pixel = 500;
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
@@ -601,6 +617,6 @@ fn main() {
         Command::CornellBox => cornell_box(args.image_width, args.file_path),
         Command::CornellSmoke => cornell_smoke(args.image_width, args.file_path),
         Command::PerlinSpheres => perlin_spheres(args.image_width, args.file_path),
-        Command::FinalTest => final_scene(args.file_path),
+        Command::FinalTest => final_scene(args.image_width, args.file_path),
     }
 }
