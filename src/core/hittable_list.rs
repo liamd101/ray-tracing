@@ -1,5 +1,4 @@
 use crate::{HitRecord, Hittable, Interval, Ray, AABB};
-// use std::rc::Rc;
 use std::sync::Arc;
 
 pub struct HittableList {

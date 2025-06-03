@@ -1,6 +1,5 @@
 use crate::{HitRecord, Hittable, HittableList, Interval, Ray, AABB};
 
-use std::rc::Rc;
 use std::sync::Arc;
 
 pub struct BvhNode {

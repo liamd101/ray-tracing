@@ -1,6 +1,5 @@
 use crate::{vec3, HitRecord, Hittable, HittableList, Interval, Material, Point3, Ray, Vec3, AABB};
 
-use std::rc::Rc;
 use std::sync::Arc;
 
 pub struct Quadrilateral {

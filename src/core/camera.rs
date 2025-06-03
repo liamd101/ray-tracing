@@ -1,10 +1,8 @@
 use exr::prelude::*;
 use rayon::prelude::*;
 
-use crate::color::write_color;
 use crate::utils::{degrees_to_radians, random_double, INFINITY};
 use crate::{vec3, Color, HitRecord, Hittable, Interval, Point3, Ray, Vec3};
-use std::sync::Arc;
 
 pub struct Camera {
     pub aspect_ratio: f32,

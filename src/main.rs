@@ -2,7 +2,7 @@ use ray_tracing::{
     new_box,
     utils::{self, random_double_range},
     BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList, Lambertian,
-    Material, Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere,
+    Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere,
     Translate, Vec3,
 };
 

@@ -2,7 +2,6 @@ use crate::{
     utils::degrees_to_radians, vec3, Interval, Material, NoneMaterial, Point3, Ray, Vec3, AABB,
 };
 
-use std::rc::Rc;
 use std::sync::Arc;
 
 #[derive(Clone)]
