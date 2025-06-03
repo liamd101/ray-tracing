@@ -605,6 +605,30 @@ enum Command {
     CornellSmoke,
     PerlinSpheres,
     FinalTest,
+    PiTest,
+}
+
+fn pi_test() {
+    let mut inside_circle: usize = 0;
+    let mut inside_circle_stratified: usize = 0;
+    let sqrt_N = 1_000;
+
+    for i in 0..sqrt_N {
+        for j in 0..sqrt_N {
+            let x = utils::random_double_range(-1., 1.);
+            let y = utils::random_double_range(-1., 1.);
+            if x * x + y * y < 1. {
+                inside_circle += 1;
+            }
+            let x = 2. * ((i as f32 + utils::random_double()) / sqrt_N as f32) - 1.;
+            let y = 2. * ((j as f32 + utils::random_double()) / sqrt_N as f32) - 1.;
+            if x*x + y*y < 1. {
+                inside_circle_stratified += 1;
+            }
+        }
+    }
+    println!("Regular\t\tEstimate of Pi = {}", (4. * inside_circle as f32) / (sqrt_N * sqrt_N) as f32);
+    println!("Stratified\tEstimate of Pi = {}", (4. * inside_circle_stratified as f32) / (sqrt_N * sqrt_N) as f32);
 }
 
 fn main() {
@@ -618,5 +642,6 @@ fn main() {
         Command::CornellSmoke => cornell_smoke(args.image_width, args.file_path),
         Command::PerlinSpheres => perlin_spheres(args.image_width, args.file_path),
         Command::FinalTest => final_scene(args.image_width, args.file_path),
+        Command::PiTest => pi_test(),
     }
 }
