@@ -1,20 +1,21 @@
 use crate::{vec3, HitRecord, Hittable, HittableList, Interval, Material, Point3, Ray, Vec3, AABB};
 
 use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Quadrilateral {
     q: Point3,
     u: Vec3,
     v: Vec3,
     w: Vec3,
-    material: Box<dyn Material>,
+    material: Arc<dyn Material>,
     bbox: AABB,
     normal: Vec3,
     d: f32,
 }
 
 impl Quadrilateral {
-    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Box<dyn Material>) -> Self {
+    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
         let n = vec3::cross(u, v);
         let normal = vec3::unit_vector(n);
         let d = vec3::dot(normal, q);
@@ -84,8 +85,7 @@ impl Hittable for Quadrilateral {
     }
 }
 
-
-pub fn new_box(p1: Point3, p2: Point3, material: Box<dyn Material>) -> HittableList {
+pub fn new_box(p1: Point3, p2: Point3, material: Arc<dyn Material>) -> HittableList {
     let mut sides = HittableList::new();
 
     let min = Point3::new(p1.x().min(p2.x()), p1.y().min(p2.y()), p1.z().min(p2.z()));
@@ -95,12 +95,42 @@ pub fn new_box(p1: Point3, p2: Point3, material: Box<dyn Material>) -> HittableL
     let dy = Vec3::new(0.0, max.y() - min.y(), 0.0);
     let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
 
-    sides.add(Rc::new(Quadrilateral::new(Point3::new(min.x(), min.y(), max.z()), dx, dy, material.clone()))); // done
-    sides.add(Rc::new(Quadrilateral::new(Point3::new(max.x(), min.y(), max.z()), -dz, dy, material.clone())));
-    sides.add(Rc::new(Quadrilateral::new(Point3::new(max.x(), min.y(), min.z()), -dx, dy, material.clone())));
-    sides.add(Rc::new(Quadrilateral::new(Point3::new(min.x(), min.y(), min.z()), dz, dy, material.clone())));
-    sides.add(Rc::new(Quadrilateral::new(Point3::new(min.x(), max.y(), max.z()), dx, -dz, material.clone())));
-    sides.add(Rc::new(Quadrilateral::new(Point3::new(min.x(), min.y(), min.z()), dx, dz, material.clone())));
+    sides.add(Arc::new(Quadrilateral::new(
+        Point3::new(min.x(), min.y(), max.z()),
+        dx,
+        dy,
+        material.clone(),
+    ))); // done
+    sides.add(Arc::new(Quadrilateral::new(
+        Point3::new(max.x(), min.y(), max.z()),
+        -dz,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quadrilateral::new(
+        Point3::new(max.x(), min.y(), min.z()),
+        -dx,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quadrilateral::new(
+        Point3::new(min.x(), min.y(), min.z()),
+        dz,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quadrilateral::new(
+        Point3::new(min.x(), max.y(), max.z()),
+        dx,
+        -dz,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quadrilateral::new(
+        Point3::new(min.x(), min.y(), min.z()),
+        dx,
+        dz,
+        material.clone(),
+    )));
 
     sides
 }

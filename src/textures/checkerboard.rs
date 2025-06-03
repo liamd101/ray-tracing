@@ -1,15 +1,15 @@
 use crate::{Color, Point3, Texture};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Checkerboard {
-    even: Rc<dyn Texture>,
-    odd: Rc<dyn Texture>,
+    even: Arc<dyn Texture>,
+    odd: Arc<dyn Texture>,
     inv_scale: f32,
 }
 
 impl Checkerboard {
-    pub fn new(even: Rc<dyn Texture>, odd: Rc<dyn Texture>, scale: f32) -> Self {
+    pub fn new(even: Arc<dyn Texture>, odd: Arc<dyn Texture>, scale: f32) -> Self {
         Checkerboard {
             odd,
             even,

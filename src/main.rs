@@ -8,19 +8,19 @@ use ray_tracing::{
 
 use clap::{Parser, Subcommand};
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 fn bouncing_spheres(image_width: usize) {
     let mut world: HittableList = HittableList::new();
 
-    let even = Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1));
-    let odd = Rc::new(SolidColor::from_rgb(0.9, 0.9, 0.9));
+    let even = Arc::new(SolidColor::from_rgb(0.2, 0.3, 0.1));
+    let odd = Arc::new(SolidColor::from_rgb(0.9, 0.9, 0.9));
     let checker = Checkerboard::new(even, odd, 0.32);
-    let material_ground = Lambertian::with_texture(Rc::new(checker));
-    world.add(Rc::new(Sphere::stationary(
+    let material_ground = Lambertian::with_texture(Arc::new(checker));
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Box::new(material_ground),
+        Arc::new(material_ground),
     )));
 
     for a in -2..2 {
@@ -32,13 +32,12 @@ fn bouncing_spheres(image_width: usize) {
                 b as f32 + 0.9 * utils::random_double(),
             );
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let sphere_material: Box<dyn Material>;
                 if choose_mat < 0.8 {
                     let albedo = Color::random() * Color::random();
-                    sphere_material = Box::new(Lambertian::new(albedo));
+                    let sphere_material = Arc::new(Lambertian::new(albedo));
                     let center2 =
                         center + Point3::new(0.0, utils::random_double_range(0.0, 0.5), 0.0);
-                    world.add(Rc::new(Sphere::moving(
+                    world.add(Arc::new(Sphere::moving(
                         center,
                         center2,
                         0.2,
@@ -47,44 +46,51 @@ fn bouncing_spheres(image_width: usize) {
                 } else if choose_mat < 0.95 {
                     let albedo = Color::random_range(0.5, 1.0);
                     let fuzz = utils::random_double_range(0.0, 0.5);
-                    sphere_material = Box::new(Metal::new(albedo, fuzz));
-                    world.add(Rc::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    let sphere_material = Arc::new(Metal::new(albedo, fuzz));
+                    world.add(Arc::new(Sphere::stationary(
+                        center,
+                        0.2,
+                        sphere_material,
+                    )));
                 } else {
-                    sphere_material = Box::new(Dielectric::new(1.5));
-                    world.add(Rc::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    let sphere_material = Arc::new(Dielectric::new(1.5));
+                    world.add(Arc::new(Sphere::stationary(
+                        center,
+                        0.2,
+                        sphere_material,
+                    )));
                 }
             }
         }
     }
 
     let material1 = Dielectric::new(1.0 / 1.5);
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         0.5,
-        Box::new(material1),
+        Arc::new(material1),
     )));
 
     let material2 = Dielectric::new(1.5);
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
-        Box::new(material2),
+        Arc::new(material2),
     )));
 
     let material3 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
-        Box::new(material3),
+        Arc::new(material3),
     )));
 
     let material4 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
-        Box::new(material4),
+        Arc::new(material4),
     )));
-
 
     let world = BvhNode::from_list(world);
 
@@ -109,19 +115,19 @@ fn bouncing_spheres(image_width: usize) {
 fn checkered_spheres(image_width: usize) {
     let mut world: HittableList = HittableList::new();
     let checker = Checkerboard::new(
-        Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
-        Rc::new(SolidColor::from_rgb(0.9, 0.9, 0.9)),
+        Arc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
+        Arc::new(SolidColor::from_rgb(0.9, 0.9, 0.9)),
         0.32,
     );
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, -10.0, 0.0),
         10.0,
-        Box::new(Lambertian::with_texture(Rc::new(checker.clone()))),
+        Arc::new(Lambertian::with_texture(Arc::new(checker.clone()))),
     )));
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 10.0, 0.0),
         10.0,
-        Box::new(Lambertian::with_texture(Rc::new(checker))),
+        Arc::new(Lambertian::with_texture(Arc::new(checker))),
     )));
 
     let world = BvhNode::from_list(world);
@@ -146,26 +152,26 @@ fn checkered_spheres(image_width: usize) {
 fn simple_light(image_width: usize) {
     let mut world: HittableList = HittableList::new();
     let checker = Checkerboard::new(
-        Rc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
-        Rc::new(SolidColor::from_rgb(0.9, 0.9, 0.9)),
+        Arc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
+        Arc::new(SolidColor::from_rgb(0.9, 0.9, 0.9)),
         0.32,
     );
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Box::new(Lambertian::with_texture(Rc::new(checker))),
+        Arc::new(Lambertian::with_texture(Arc::new(checker))),
     )));
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 2.0, 0.0),
         2.0,
-        Box::new(Lambertian::new(Color::new(0.5, 0.5, 0.5))),
+        Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5))),
     )));
 
     let diffuse_light = DiffuseLight::from_color(Color::new(4.0, 4.0, 4.0));
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 7.0, 0.0),
         2.0,
-        Box::new(diffuse_light),
+        Arc::new(diffuse_light),
     )));
 
     let world = BvhNode::from_list(world);
@@ -195,35 +201,35 @@ fn quads(image_width: usize) {
     let upper_orange = Lambertian::new(Color::new(1.0, 0.5, 0.0));
     let lower_teal = Lambertian::new(Color::new(0.2, 0.8, 0.8));
 
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(-3.0, -2.0, 5.0),
         Vec3::new(0.0, 0.0, -4.0),
         Vec3::new(0.0, 4.0, 0.0),
-        Box::new(left_red),
+        Arc::new(left_red),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(-2.0, -2.0, 0.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 4.0, 0.0),
-        Box::new(back_green),
+        Arc::new(back_green),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(3.0, -2.0, 1.0),
         Vec3::new(0.0, 0.0, 4.0),
         Vec3::new(0.0, 4.0, 0.0),
-        Box::new(right_blue),
+        Arc::new(right_blue),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(-2.0, 3.0, 1.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 4.0),
-        Box::new(upper_orange),
+        Arc::new(upper_orange),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(-2.0, -3.0, 5.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -4.0),
-        Box::new(lower_teal),
+        Arc::new(lower_teal),
     )));
 
     let world = BvhNode::from_list(world);
@@ -253,61 +259,61 @@ fn cornell_box(image_width: usize) {
     let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
     let light = DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0));
 
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
-        Box::new(green),
+        Arc::new(green),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(0.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
-        Box::new(red),
+        Arc::new(red),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(343.0, 554.0, 332.0),
         Vec3::new(-130.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -105.0),
-        Box::new(light),
+        Arc::new(light),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(0.0, 0.0, 0.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
-        Box::new(white.clone()),
+        Arc::new(white.clone()),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(555.0, 555.0, 555.0),
         Vec3::new(-555.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -555.0),
-        Box::new(white.clone()),
+        Arc::new(white.clone()),
     )));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(0.0, 0.0, 555.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
-        Box::new(white.clone()),
+        Arc::new(white.clone()),
     )));
 
     let box1 = new_box(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 330.0, 165.0),
-        Box::new(white.clone()),
+        Arc::new(white.clone()),
     );
-    let box1 = RotateY::new(Rc::new(box1), 15.0);
-    let box1 = Translate::new(Rc::new(box1), Vec3::new(265.0, 0.0, 295.0));
-    world.add(Rc::new(box1));
+    let box1 = RotateY::new(Arc::new(box1), 15.0);
+    let box1 = Translate::new(Arc::new(box1), Vec3::new(265.0, 0.0, 295.0));
+    world.add(Arc::new(box1));
 
     let box2 = new_box(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 165.0, 165.0),
-        Box::new(white.clone()),
+        Arc::new(white.clone()),
     );
-    let box2 = RotateY::new(Rc::new(box2), -18.0);
-    let box2 = Translate::new(Rc::new(box2), Vec3::new(130.0, 0.0, 65.0));
+    let box2 = RotateY::new(Arc::new(box2), -18.0);
+    let box2 = Translate::new(Arc::new(box2), Vec3::new(130.0, 0.0, 65.0));
 
-    world.add(Rc::new(box2));
+    world.add(Arc::new(box2));
 
     let world = BvhNode::from_list(world);
 
@@ -331,17 +337,17 @@ fn cornell_box(image_width: usize) {
 fn perlin_spheres(image_width: usize) {
     let mut world: HittableList = HittableList::new();
 
-    let per_text = Rc::new(PerlinNoise::new(4.0));
-    world.add(Rc::new(Sphere::stationary(
+    let per_text = Arc::new(PerlinNoise::new(4.0));
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Box::new(Lambertian::with_texture(per_text.clone())),
+        Arc::new(Lambertian::with_texture(per_text.clone())),
     )));
 
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 2.0, 0.0),
         2.0,
-        Box::new(Lambertian::with_texture(per_text)),
+        Arc::new(Lambertian::with_texture(per_text)),
     )));
 
     let world = BvhNode::from_list(world);
@@ -379,47 +385,47 @@ fn final_scene() {
             let y1 = random_double_range(1.0, 101.0);
             let z1 = z0 + w;
 
-            boxes1.add(Rc::new(new_box(
+            boxes1.add(Arc::new(new_box(
                 Point3::new(x0, y0, z0),
                 Point3::new(x1, y1, z1),
-                Box::new(ground.clone()),
+                Arc::new(ground.clone()),
             )));
         }
     }
     let mut world = HittableList::new();
-    world.add(Rc::new(BvhNode::from_list(boxes1)));
+    world.add(Arc::new(BvhNode::from_list(boxes1)));
 
     let light = DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0));
-    world.add(Rc::new(Quad::new(
+    world.add(Arc::new(Quad::new(
         Point3::new(123.0, 554.0, 147.0),
         Vec3::new(300.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 265.0),
-        Box::new(light),
+        Arc::new(light),
     )));
 
     let center1 = Point3::new(400.0, 400.0, 200.0);
     let center2 = center1 + Vec3::new(30.0, 0.0, 0.0);
-    let sphere_material = Box::new(Lambertian::new(Color::new(0.7, 0.3, 0.1)));
-    world.add(Rc::new(Sphere::moving(
+    let sphere_material = Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.1)));
+    world.add(Arc::new(Sphere::moving(
         center1,
         center2,
         50.0,
         sphere_material,
     )));
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(260.0, 150.0, 45.0),
         50.0,
-        Box::new(Dielectric::new(1.5)),
+        Arc::new(Dielectric::new(1.5)),
     )));
-    world.add(Rc::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 150.0, 145.0),
         50.0,
-        Box::new(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0)),
+        Arc::new(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0)),
     )));
     /* TODO
-    let boundary = Sphere::stationary(Point3::new(360.0,150.0,145.0), 70.0, Box::new(Dielectric::new(1.5)));
-    world.add(Rc::new(boundary));
-    world.add(Rc::new(constant_medium(boundary, 0.2, color(0.2, 0.4, 0.9))));
+    let boundary = Sphere::stationary(Point3::new(360.0,150.0,145.0), 70.0, Arc::new(Dielectric::new(1.5)));
+    world.add(Arc::new(boundary));
+    world.add(Arc::new(constant_medium(boundary, 0.2, color(0.2, 0.4, 0.9))));
     boundary = make_shared<sphere>(point3(0,0,0), 5000, make_shared<dielectric>(1.5));
     world.add(make_shared<constant_medium>(boundary, .0001, color(1,1,1)));
 
@@ -430,17 +436,17 @@ fn final_scene() {
     */
 
     let mut boxes2 = HittableList::new();
-    let white = Box::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
     let ns = 1000;
     for _ in 0..ns {
-        boxes2.add(Rc::new(Sphere::stationary(
+        boxes2.add(Arc::new(Sphere::stationary(
             Point3::random_range(0.0, 165.0),
             10.0,
             white.clone(),
         )));
     }
-    world.add(Rc::new(Translate::new(
-        Rc::new(RotateY::new(Rc::new(BvhNode::from_list(boxes2)), 15.0)),
+    world.add(Arc::new(Translate::new(
+        Arc::new(RotateY::new(Arc::new(BvhNode::from_list(boxes2)), 15.0)),
         Vec3::new(-100.0, 270.0, 395.0),
     )));
 

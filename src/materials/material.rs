@@ -1,7 +1,7 @@
 use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::Point3};
 use dyn_clone::DynClone;
 
-pub trait Material: DynClone {
+pub trait Material: DynClone + Send + Sync {
     fn scatter(
         &self,
         r_in: &Ray,

@@ -1,6 +1,10 @@
+use exr::prelude::*;
+use rayon::prelude::*;
+
 use crate::color::write_color;
 use crate::utils::{degrees_to_radians, random_double, INFINITY};
 use crate::{vec3, Color, HitRecord, Hittable, Interval, Point3, Ray, Vec3};
+use std::sync::Arc;
 
 pub struct Camera {
     pub aspect_ratio: f32,
@@ -64,22 +68,50 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        println!("P3\n{} {}\n255", self.image_width, self.image_height);
-        for j in 0..self.image_height {
-            eprint!("\rScanlines remaining: {} ", self.image_height - j);
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..self.samples_per_pixel {
-                    let ray = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&ray, self.max_depth, world);
-                }
-                write_color(
-                    &mut std::io::stdout(),
-                    self.pixel_samples_scale * pixel_color,
-                );
+        let pixels = self.render_pixels_parallel(world);
+        self.write_image(pixels);
+    }
+
+    pub fn render_pixels_parallel(&self, world: &dyn Hittable) -> Vec<(usize, usize, Vec3)> {
+        (0..self.image_height)
+            .into_par_iter()
+            .flat_map(|y| {
+                (0..self.image_width).into_par_iter().map(move |x| {
+                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                    for _ in 0..self.samples_per_pixel {
+                        let ray = self.get_ray(x, y);
+                        pixel_color += self.ray_color(&ray, self.max_depth, world);
+                    }
+                    (x, y, self.pixel_samples_scale * pixel_color)
+                })
+            })
+            .collect()
+    }
+
+    fn write_image(&self, pixels: Vec<(usize, usize, Vec3)>) {
+        let mut image: Vec<f32> = Vec::with_capacity(self.image_height * self.image_width * 3);
+        let mut pixel_map = vec![vec![[0.0f32; 3]; self.image_width]; self.image_height];
+
+        for (x, y, col) in pixels {
+            pixel_map[y][x] = [col.x(), col.y(), col.z()];
+        }
+
+        for row in pixel_map {
+            for pixel in row {
+                image.extend(&pixel);
             }
         }
-        eprintln!("\nDone.\n");
+
+        Image::from_channels(
+            (self.image_width, self.image_height),
+            SpecificChannels::rgb(|Vec2(x, y)| {
+                let idx = (y * self.image_width + x) * 3;
+                (image[idx], image[idx + 1], image[idx + 2])
+            }),
+        )
+        .write()
+        .to_file("image.ppm")
+        .unwrap();
     }
 
     fn get_ray(&self, i: usize, j: usize) -> Ray {

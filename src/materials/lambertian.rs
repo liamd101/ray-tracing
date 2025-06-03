@@ -1,19 +1,19 @@
 use crate::{vec3, Color, HitRecord, Material, Ray, SolidColor, Texture};
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Lambertian {
-    tex: Rc<dyn Texture>,
+    tex: Arc<dyn Texture>,
 }
 impl Lambertian {
     pub fn new(color: Color) -> Self {
         Self {
-            tex: Rc::new(SolidColor::new(color)),
+            tex: Arc::new(SolidColor::new(color)),
         }
     }
 
-    pub fn with_texture(tex: Rc<dyn Texture>) -> Self {
+    pub fn with_texture(tex: Arc<dyn Texture>) -> Self {
         Self { tex }
     }
 }

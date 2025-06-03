@@ -1,19 +1,19 @@
 use crate::{Color, Material, Point3, Texture};
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct DiffuseLight {
-    emit: Rc<dyn Texture>,
+    emit: Arc<dyn Texture>,
 }
 impl DiffuseLight {
-    pub fn new(emit: Rc<dyn Texture>) -> Self {
+    pub fn new(emit: Arc<dyn Texture>) -> Self {
         Self { emit }
     }
 
     pub fn from_color(color: Color) -> Self {
         Self {
-            emit: Rc::new(crate::SolidColor::new(color)),
+            emit: Arc::new(crate::SolidColor::new(color)),
         }
     }
 }

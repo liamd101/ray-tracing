@@ -1,9 +1,11 @@
 use crate::{vec3, HitRecord, Hittable, Interval, Material, NoneMaterial, Point3, Ray, Vec3, AABB};
 
+use std::sync::Arc;
+
 pub struct Sphere {
     center: Point3,
     radius: f32,
-    mat: Box<dyn Material>,
+    mat: Arc<dyn Material>,
     bbox: AABB,
     is_moving: bool,
     center_vec: Vec3,
@@ -13,7 +15,7 @@ impl Default for Sphere {
         Sphere {
             center: Point3::default(),
             radius: 0.0,
-            mat: Box::new(NoneMaterial),
+            mat: Arc::new(NoneMaterial),
             bbox: AABB::default(),
             is_moving: false,
             center_vec: Vec3::default(),
@@ -22,7 +24,7 @@ impl Default for Sphere {
 }
 
 impl Sphere {
-    pub fn stationary(center: Point3, radius: f32, mat: Box<dyn Material>) -> Self {
+    pub fn stationary(center: Point3, radius: f32, mat: Arc<dyn Material>) -> Self {
         let rvec = Vec3([radius, radius, radius]);
         let bbox = AABB::around_points(center - rvec, center + rvec);
         Sphere {
@@ -35,7 +37,7 @@ impl Sphere {
         }
     }
 
-    pub fn moving(center1: Point3, center2: Point3, radius: f32, mat: Box<dyn Material>) -> Self {
+    pub fn moving(center1: Point3, center2: Point3, radius: f32, mat: Arc<dyn Material>) -> Self {
         let rvec = Vec3([radius, radius, radius]);
         let bbox = AABB::around_points(center1 - rvec, center1 + rvec);
         let center_vec = center2 - center1;

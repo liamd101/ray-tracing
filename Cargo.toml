@@ -12,3 +12,5 @@ br = "build --release"
 clap = { version = "4.5.8", features = ["derive"] }
 dyn-clone = "1.0.17"
 rand = "0.8.5"
+exr = "1.7"
+rayon = "1.7"

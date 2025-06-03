@@ -1,10 +1,11 @@
 use crate::{HitRecord, Hittable, HittableList, Interval, Ray, AABB};
 
 use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct BvhNode {
-    left: Rc<dyn Hittable>,
-    right: Rc<dyn Hittable>,
+    left: Arc<dyn Hittable>,
+    right: Arc<dyn Hittable>,
     bbox: AABB,
 }
 
@@ -13,7 +14,7 @@ impl BvhNode {
         Self::new_optimized(&mut list.objects)
     }
 
-    fn new_optimized(objects: &mut [Rc<dyn Hittable>]) -> Self {
+    fn new_optimized(objects: &mut [Arc<dyn Hittable>]) -> Self {
         let bbox = objects.iter().fold(AABB::empty(), |acc, obj| {
             AABB::around_boxes(&acc, obj.bounding_box())
         });
@@ -73,29 +74,30 @@ impl BvhNode {
         let mut min_sah = f32::MAX;
         let mut min_sah_idx = 0;
         for i in 0..(objects.len() - 1) {
-            let sah =
-                (i as f32)+1.0 * left_area[i] + ((objects.len() - 1 - i) as f32) * right_area[i + 1];
+            let sah = (i as f32)
+                + 1.0 * left_area[i]
+                + ((objects.len() - 1 - i) as f32) * right_area[i + 1];
             if sah < min_sah {
                 min_sah = sah;
                 min_sah_idx = i;
             }
         }
 
-        let left: Rc<dyn Hittable> = if min_sah_idx == 0 {
+        let left: Arc<dyn Hittable> = if min_sah_idx == 0 {
             objects[0].clone()
         } else {
-            Rc::new(Self::new_optimized(&mut objects[0..min_sah_idx + 1]))
+            Arc::new(Self::new_optimized(&mut objects[0..min_sah_idx + 1]))
         };
-        let right: Rc<dyn Hittable> = if min_sah_idx + 1 == objects.len() - 1 {
+        let right: Arc<dyn Hittable> = if min_sah_idx + 1 == objects.len() - 1 {
             objects[min_sah_idx + 1].clone()
         } else {
-            Rc::new(Self::new_optimized(&mut objects[min_sah_idx + 1..]))
+            Arc::new(Self::new_optimized(&mut objects[min_sah_idx + 1..]))
         };
 
         Self { left, right, bbox }
     }
 
-    fn box_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>, axis: usize) -> std::cmp::Ordering {
+    fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis: usize) -> std::cmp::Ordering {
         let a_box = a.bounding_box();
         let b_box = b.bounding_box();
         a_box
@@ -104,15 +106,15 @@ impl BvhNode {
             .total_cmp(&b_box.axis_interval(axis).min)
     }
 
-    fn box_x_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> std::cmp::Ordering {
+    fn box_x_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> std::cmp::Ordering {
         Self::box_compare(a, b, 0)
     }
 
-    fn box_y_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> std::cmp::Ordering {
+    fn box_y_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> std::cmp::Ordering {
         Self::box_compare(a, b, 1)
     }
 
-    fn box_z_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> std::cmp::Ordering {
+    fn box_z_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> std::cmp::Ordering {
         Self::box_compare(a, b, 2)
     }
 }

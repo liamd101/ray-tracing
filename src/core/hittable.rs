@@ -3,12 +3,13 @@ use crate::{
 };
 
 use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
-    pub mat: Box<dyn Material>,
+    pub mat: Arc<dyn Material>,
     pub t: f32,
     pub u: f32,
     pub v: f32,
@@ -20,7 +21,7 @@ impl Default for HitRecord {
         HitRecord {
             p: Default::default(),
             normal: Default::default(),
-            mat: Box::new(NoneMaterial),
+            mat: Arc::new(NoneMaterial),
             t: 0.0,
             u: 0.0,
             v: 0.0,
@@ -40,19 +41,19 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, r: &Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool;
 
     fn bounding_box(&self) -> &AABB;
 }
 
 pub struct Translate {
-    object: Rc<dyn Hittable>,
+    object: Arc<dyn Hittable>,
     offset: Vec3,
     bbox: AABB,
 }
 impl Translate {
-    pub fn new(object: Rc<dyn Hittable>, offset: Vec3) -> Self {
+    pub fn new(object: Arc<dyn Hittable>, offset: Vec3) -> Self {
         let bbox = object.bounding_box() + offset;
         Self {
             object,
@@ -81,13 +82,13 @@ impl Hittable for Translate {
 }
 
 pub struct RotateY {
-    object: Rc<dyn Hittable>,
+    object: Arc<dyn Hittable>,
     sin_theta: f32,
     cos_theta: f32,
     bbox: AABB,
 }
 impl RotateY {
-    pub fn new(object: Rc<dyn Hittable>, angle: f32) -> Self {
+    pub fn new(object: Arc<dyn Hittable>, angle: f32) -> Self {
         let radians = degrees_to_radians(angle);
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
