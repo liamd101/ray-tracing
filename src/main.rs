@@ -2,8 +2,8 @@ use ray_tracing::{
     new_box,
     utils::{self, random_double_range},
     BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList, Lambertian,
-    Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere,
-    Translate, Vec3,
+    Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate,
+    Vec3,
 };
 
 use clap::{Parser, Subcommand};
@@ -47,18 +47,10 @@ fn bouncing_spheres(image_width: usize) {
                     let albedo = Color::random_range(0.5, 1.0);
                     let fuzz = utils::random_double_range(0.0, 0.5);
                     let sphere_material = Arc::new(Metal::new(albedo, fuzz));
-                    world.add(Arc::new(Sphere::stationary(
-                        center,
-                        0.2,
-                        sphere_material,
-                    )));
+                    world.add(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                 } else {
                     let sphere_material = Arc::new(Dielectric::new(1.5));
-                    world.add(Arc::new(Sphere::stationary(
-                        center,
-                        0.2,
-                        sphere_material,
-                    )));
+                    world.add(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                 }
             }
         }

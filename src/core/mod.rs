@@ -5,7 +5,7 @@ pub use ray::Ray;
 pub mod vec3;
 pub use vec3::{Point3, Vec3};
 pub(crate) mod hittable;
-pub use hittable::{HitRecord, Hittable, Translate, RotateY};
+pub use hittable::{HitRecord, Hittable, RotateY, Translate};
 pub(crate) mod hittable_list;
 pub use hittable_list::HittableList;
 pub mod camera;

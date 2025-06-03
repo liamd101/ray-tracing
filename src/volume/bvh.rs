@@ -96,7 +96,11 @@ impl BvhNode {
         Self { left, right, bbox }
     }
 
-    fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis: usize) -> std::cmp::Ordering {
+    fn box_compare(
+        a: &Arc<dyn Hittable>,
+        b: &Arc<dyn Hittable>,
+        axis: usize,
+    ) -> std::cmp::Ordering {
         let a_box = a.bounding_box();
         let b_box = b.bounding_box();
         a_box
