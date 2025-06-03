@@ -1,4 +1,5 @@
 use exr::prelude::*;
+use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
 use crate::utils::{degrees_to_radians, random_double, INFINITY};
@@ -71,6 +72,7 @@ impl Camera {
     }
 
     pub fn render_pixels_parallel(&self, world: &dyn Hittable) -> Vec<(usize, usize, Vec3)> {
+        let total_pixels = (self.image_height * self.image_width) as u64;
         (0..self.image_height)
             .into_par_iter()
             .flat_map(|y| {
@@ -83,6 +85,7 @@ impl Camera {
                     (x, y, self.pixel_samples_scale * pixel_color)
                 })
             })
+            .progress_count(total_pixels)
             .collect()
     }
 
