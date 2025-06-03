@@ -17,6 +17,7 @@ pub struct Camera {
     pub vup: Vec3,
     pub defocus_angle: f32,
     pub focus_dist: f32,
+    pub file_path: String,
     image_height: usize,
     pixel_samples_scale: f32,
     center: Vec3,
@@ -44,6 +45,7 @@ impl Default for Camera {
             vup: Vec3::new(0.0, 1.0, 0.0),
             defocus_angle: 0.0,
             focus_dist: 10.0,
+            file_path: "image.ppm".into(),
             image_height: 0,
             pixel_samples_scale: 1.0 / 10.0,
             center: Vec3::new(0.0, 0.0, 0.0),
@@ -111,7 +113,7 @@ impl Camera {
             }),
         )
         .write()
-        .to_file("image.ppm")
+        .to_file(&self.file_path)
         .unwrap();
     }
 

@@ -1,16 +1,16 @@
 use ray_tracing::{
     new_box,
     utils::{self, random_double_range},
-    BvhNode, Camera, Checkerboard, Color, Dielectric, DiffuseLight, HittableList, Lambertian,
-    Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate,
-    Vec3,
+    BvhNode, Camera, Checkerboard, Color, ConstantMedium, Dielectric, DiffuseLight, HittableList,
+    Lambertian, Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere,
+    Translate, Vec3,
 };
 
 use clap::{Parser, Subcommand};
 
 use std::sync::Arc;
 
-fn bouncing_spheres(image_width: usize) {
+fn bouncing_spheres(image_width: usize, file_path: String) {
     let mut world: HittableList = HittableList::new();
 
     let even = Arc::new(SolidColor::from_rgb(0.2, 0.3, 0.1));
@@ -101,10 +101,11 @@ fn bouncing_spheres(image_width: usize) {
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
-fn checkered_spheres(image_width: usize) {
+fn checkered_spheres(image_width: usize, file_path: String) {
     let mut world: HittableList = HittableList::new();
     let checker = Checkerboard::new(
         Arc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
@@ -138,10 +139,11 @@ fn checkered_spheres(image_width: usize) {
 
     cam.defocus_angle = 0.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
-fn simple_light(image_width: usize) {
+fn simple_light(image_width: usize, file_path: String) {
     let mut world: HittableList = HittableList::new();
     let checker = Checkerboard::new(
         Arc::new(SolidColor::from_rgb(0.2, 0.3, 0.1)),
@@ -181,10 +183,11 @@ fn simple_light(image_width: usize) {
     cam.vup = Vec3::new(0.0, 1.0, 0.0);
     cam.defocus_angle = 0.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
-fn quads(image_width: usize) {
+fn quads(image_width: usize, file_path: String) {
     let mut world = HittableList::new();
 
     let left_red = Lambertian::new(Color::new(1.0, 0.2, 0.2));
@@ -240,10 +243,11 @@ fn quads(image_width: usize) {
 
     cam.defocus_angle = 0.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
-fn cornell_box(image_width: usize) {
+fn cornell_box(image_width: usize, file_path: String) {
     let mut world = HittableList::new();
 
     let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
@@ -323,10 +327,11 @@ fn cornell_box(image_width: usize) {
 
     cam.defocus_angle = 0.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
-fn perlin_spheres(image_width: usize) {
+fn perlin_spheres(image_width: usize, file_path: String) {
     let mut world: HittableList = HittableList::new();
 
     let per_text = Arc::new(PerlinNoise::new(4.0));
@@ -359,10 +364,107 @@ fn perlin_spheres(image_width: usize) {
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
-fn final_scene() {
+fn cornell_smoke(image_width: usize, file_path: String) {
+    let mut world = HittableList::new();
+
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)));
+
+    // Cornell box walls
+    world.add(Arc::new(Quad::new(
+        Point3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        green,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        red,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(113.0, 554.0, 127.0),
+        Vec3::new(330.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 305.0),
+        light,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(0.0, 555.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    )));
+
+    // Create boxes with transformations
+    let box1 = new_box(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
+        white.clone(),
+    );
+    let box1 = Arc::new(RotateY::new(Arc::new(box1), 15.0));
+    let box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+
+    let box2 = new_box(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    );
+    let box2 = Arc::new(RotateY::new(Arc::new(box2), -18.0));
+    let box2 = Arc::new(Translate::new(box2, Vec3::new(130.0, 0.0, 65.0)));
+
+    // Add volumetric media (smoke)
+    world.add(Arc::new(ConstantMedium::with_color(
+        box1,
+        0.01,
+        Color::new(0.0, 0.0, 0.0),
+    )));
+    world.add(Arc::new(ConstantMedium::with_color(
+        box2,
+        0.01,
+        Color::new(1.0, 1.0, 1.0),
+    )));
+
+    let world: BvhNode = BvhNode::from_list(world);
+
+    let mut cam = Camera::new();
+
+    cam.aspect_ratio = 1.0;
+    cam.image_width = image_width;
+    cam.samples_per_pixel = 200;
+    cam.max_depth = 50;
+    cam.background = Color::new(0.0, 0.0, 0.0);
+
+    cam.vfov = 40.0;
+    cam.look_from = Point3::new(278.0, 278.0, -800.0);
+    cam.look_at = Point3::new(278.0, 278.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.file_path = file_path;
+    cam.render(&world);
+}
+
+fn final_scene(file_path: String) {
     let mut boxes1 = HittableList::new();
     let ground = Lambertian::new(Color::new(0.48, 0.83, 0.53));
 
@@ -414,12 +516,13 @@ fn final_scene() {
         50.0,
         Arc::new(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0)),
     )));
+
     /* TODO
     let boundary = Sphere::stationary(Point3::new(360.0,150.0,145.0), 70.0, Arc::new(Dielectric::new(1.5)));
     world.add(Arc::new(boundary));
-    world.add(Arc::new(constant_medium(boundary, 0.2, color(0.2, 0.4, 0.9))));
-    boundary = make_shared<sphere>(point3(0,0,0), 5000, make_shared<dielectric>(1.5));
-    world.add(make_shared<constant_medium>(boundary, .0001, color(1,1,1)));
+    world.add(Arc::new(Constant_medium::new(boundary, 0.2, Color::new(0.2, 0.4, 0.9))));
+    let boundary = Sphere::stationary(Point3::new(0.0,0.0,0.0), 5000.0, Arc::new(Dielectric::new(1.5)));
+    world.add(Arc::new(Constant_medium::new(boundary, .0001, Color::new(1.0,1.0,1.0))));
 
     auto emat = make_shared<lambertian>(make_shared<image_texture>("earthmap.jpg"));
     world.add(make_shared<sphere>(point3(400,200,400), 100, emat));
@@ -459,6 +562,7 @@ fn final_scene() {
 
     cam.defocus_angle = 0.0;
 
+    cam.file_path = file_path;
     cam.render(&world);
 }
 
@@ -470,6 +574,9 @@ struct Cli {
 
     #[arg(short = 'w', long, default_value_t = 400)]
     image_width: usize,
+
+    #[arg(short = 'f', long)]
+    file_path: String,
 }
 
 #[derive(Subcommand, Debug)]
@@ -479,6 +586,7 @@ enum Command {
     SimpleLight,
     Quads,
     CornellBox,
+    CornellSmoke,
     PerlinSpheres,
     FinalTest,
 }
@@ -486,12 +594,13 @@ enum Command {
 fn main() {
     let args = Cli::parse();
     match args.command {
-        Command::BouncingSpheres => bouncing_spheres(args.image_width),
-        Command::CheckeredSpheres => checkered_spheres(args.image_width),
-        Command::SimpleLight => simple_light(args.image_width),
-        Command::Quads => quads(args.image_width),
-        Command::CornellBox => cornell_box(args.image_width),
-        Command::PerlinSpheres => perlin_spheres(args.image_width),
-        Command::FinalTest => final_scene(),
+        Command::BouncingSpheres => bouncing_spheres(args.image_width, args.file_path),
+        Command::CheckeredSpheres => checkered_spheres(args.image_width, args.file_path),
+        Command::SimpleLight => simple_light(args.image_width, args.file_path),
+        Command::Quads => quads(args.image_width, args.file_path),
+        Command::CornellBox => cornell_box(args.image_width, args.file_path),
+        Command::CornellSmoke => cornell_smoke(args.image_width, args.file_path),
+        Command::PerlinSpheres => perlin_spheres(args.image_width, args.file_path),
+        Command::FinalTest => final_scene(args.file_path),
     }
 }
