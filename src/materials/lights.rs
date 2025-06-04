@@ -1,4 +1,5 @@
 use crate::{Color, Material, Point3, Texture};
+use crate::{HitRecord, Ray};
 
 use std::sync::Arc;
 
@@ -25,11 +26,16 @@ impl Material for DiffuseLight {
         _: &crate::HitRecord,
         _: &mut crate::Color,
         _: &mut crate::Ray,
+        _pdf: &mut f32,
     ) -> bool {
         false
     }
 
     fn emitted(&self, u: f32, v: f32, p: &Point3) -> Color {
         self.emit.value(u, v, p)
+    }
+
+    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
+        0.
     }
 }

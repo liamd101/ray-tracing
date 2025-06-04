@@ -22,6 +22,7 @@ impl Material for Dielectric {
         rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
+        _pdf: &mut f32,
     ) -> bool {
         *attenuation = Color::new(1.0, 1.0, 1.0);
         let ri = if rec.front_face {
@@ -45,5 +46,9 @@ impl Material for Dielectric {
 
     fn emitted(&self, _: f32, _: f32, _: &vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
+    }
+
+    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
+        0.
     }
 }

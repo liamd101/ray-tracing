@@ -2,7 +2,7 @@ use exr::prelude::*;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
-use crate::utils::{degrees_to_radians, random_double, INFINITY};
+use crate::utils::{degrees_to_radians, random_double, random_double_range, INFINITY};
 use crate::{vec3, Color, HitRecord, Hittable, Interval, Point3, Ray, Vec3};
 
 pub struct Camera {
@@ -152,10 +152,6 @@ impl Camera {
         Vec3::new(px, py, 0.)
     }
 
-    fn sample_square() -> Vec3 {
-        Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
-    }
-
     fn initialize(&mut self) {
         let aspect_ratio = self.aspect_ratio;
         let image_width = self.image_width;
@@ -207,13 +203,41 @@ impl Camera {
 
         let mut scattered = Ray::default();
         let mut attenuation = Color::default();
+        let mut pdf_value = 0.;
         let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
 
-        if !rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+        if !rec
+            .mat
+            .scatter(r, &rec, &mut attenuation, &mut scattered, &mut pdf_value)
+        {
             return color_from_emission;
         }
 
-        let color_from_scatter = attenuation * self.ray_color(&scattered, depth - 1, world);
+        let on_light = Point3::new(
+            random_double_range(213., 343.),
+            554.,
+            random_double_range(227., 332.),
+        );
+        let to_light = on_light - rec.p;
+        let distance_squared = to_light.length_squared();
+        let to_light = vec3::unit_vector(to_light);
+
+        if vec3::dot(to_light, rec.normal) < 0. {
+            return color_from_emission;
+        }
+        let light_area = (343. - 213.) * (332. - 227.);
+        let light_cosine = to_light.y().abs();
+        if light_cosine < 0.000001 {
+            return color_from_emission;
+        }
+
+        let pdf_value = distance_squared / (light_cosine * light_area);
+        scattered = Ray::new(rec.p, to_light, r.time());
+
+        let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
+
+        let color_from_scatter =
+            scattering_pdf * attenuation * self.ray_color(&scattered, depth - 1, world) / pdf_value;
         color_from_emission + color_from_scatter
     }
 }

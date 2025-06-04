@@ -20,6 +20,7 @@ impl Material for Metal {
         rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
+        _pdf: &mut f32,
     ) -> bool {
         let reflected = crate::vec3::reflect(r_in.direction(), rec.normal);
         let reflected = vec3::unit_vector(reflected) + (self.fuzz * vec3::random_unit_vector());
@@ -30,5 +31,9 @@ impl Material for Metal {
 
     fn emitted(&self, _: f32, _: f32, _: &vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
+    }
+
+    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
+        0.
     }
 }

@@ -8,9 +8,12 @@ pub trait Material: DynClone + Send + Sync {
         rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
+        pdf: &mut f32,
     ) -> bool;
 
     fn emitted(&self, u: f32, v: f32, p: &Point3) -> Color;
+
+    fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f32;
 }
 
 dyn_clone::clone_trait_object!(Material);
@@ -24,11 +27,16 @@ impl Material for NoneMaterial {
         _rec: &HitRecord,
         _attenuation: &mut Color,
         _scattered: &mut Ray,
+        _pdf: &mut f32,
     ) -> bool {
         false
     }
 
     fn emitted(&self, _u: f32, _v: f32, _p: &Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
+    }
+
+    fn scattering_pdf(&self, _: &Ray, _: &HitRecord, _: &Ray) -> f32 {
+        0.
     }
 }

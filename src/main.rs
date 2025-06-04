@@ -1,9 +1,7 @@
 use ray_tracing::{
-    new_box,
-    utils::{self, random_double_range},
-    BvhNode, Camera, Checkerboard, Color, ConstantMedium, Dielectric, DiffuseLight, HittableList,
-    Lambertian, Metal, PerlinNoise, Point3, Quadrilateral as Quad, RotateY, SolidColor, Sphere,
-    Translate, Vec3,
+    new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, ConstantMedium, Dielectric,
+    DiffuseLight, HittableList, Lambertian, Metal, PerlinNoise, Point3, Quadrilateral as Quad,
+    RotateY, SolidColor, Sphere, Translate, Vec3,
 };
 
 use clap::{Parser, Subcommand};
@@ -89,8 +87,8 @@ fn bouncing_spheres(image_width: usize, file_path: String) {
     let mut cam: Camera = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = image_width;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 25;
+    cam.samples_per_pixel = 200;
+    cam.max_depth = 50;
     cam.background = Color::new(0.70, 0.80, 1.00);
 
     cam.vfov = 20.0;
@@ -316,7 +314,7 @@ fn cornell_box(image_width: usize, file_path: String) {
     let mut cam = Camera::new();
     cam.aspect_ratio = 1.0;
     cam.image_width = image_width;
-    cam.samples_per_pixel = 200;
+    cam.samples_per_pixel = 500;
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
@@ -350,9 +348,10 @@ fn perlin_spheres(image_width: usize, file_path: String) {
     let world = BvhNode::from_list(world);
 
     let mut cam: Camera = Camera::new();
-    cam.aspect_ratio = 16.0 / 9.0;
+    // cam.aspect_ratio = 16. / 9.;
+    cam.aspect_ratio = 1.;
     cam.image_width = image_width;
-    cam.samples_per_pixel = 100;
+    cam.samples_per_pixel = 1000;
     cam.max_depth = 50;
     cam.background = Color::new(0.70, 0.80, 1.00);
 
@@ -476,7 +475,7 @@ fn final_scene(image_width: usize, file_path: String) {
             let z0 = -1000.0 + (j as f32) * w;
             let y0 = 0.0;
             let x1 = x0 + w;
-            let y1 = random_double_range(1.0, 101.0);
+            let y1 = utils::random_double_range(1.0, 101.0);
             let z1 = z0 + w;
 
             boxes1.add(Arc::new(new_box(
@@ -609,26 +608,23 @@ enum Command {
 }
 
 fn pi_test() {
-    let mut inside_circle: usize = 0;
-    let mut inside_circle_stratified: usize = 0;
-    let sqrt_N = 1_000;
-
-    for i in 0..sqrt_N {
-        for j in 0..sqrt_N {
-            let x = utils::random_double_range(-1., 1.);
-            let y = utils::random_double_range(-1., 1.);
-            if x * x + y * y < 1. {
-                inside_circle += 1;
-            }
-            let x = 2. * ((i as f32 + utils::random_double()) / sqrt_N as f32) - 1.;
-            let y = 2. * ((j as f32 + utils::random_double()) / sqrt_N as f32) - 1.;
-            if x*x + y*y < 1. {
-                inside_circle_stratified += 1;
-            }
-        }
+    fn f(d: Vec3) -> f32 {
+        d.z() * d.z()
     }
-    println!("Regular\t\tEstimate of Pi = {}", (4. * inside_circle as f32) / (sqrt_N * sqrt_N) as f32);
-    println!("Stratified\tEstimate of Pi = {}", (4. * inside_circle_stratified as f32) / (sqrt_N * sqrt_N) as f32);
+    fn pdf(_: Vec3) -> f32 {
+        1. / (4. * std::f32::consts::PI)
+    }
+
+    let n = 100_000;
+    let mut sum = 0.;
+
+    for _ in 0..n {
+        let d = vec3::random_unit_vector();
+        let f_d = f(d);
+        sum += f_d / pdf(d);
+    }
+
+    println!("I = {}", sum / (n as f32));
 }
 
 fn main() {
