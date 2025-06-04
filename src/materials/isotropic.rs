@@ -33,7 +33,7 @@ impl Material for Isotropic {
     }
 
     // default emission (we are not a light)
-    fn emitted(&self, _: f32, _: f32, _: &vec3::Point3) -> Color {
+    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: &vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 

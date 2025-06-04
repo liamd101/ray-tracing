@@ -11,7 +11,7 @@ pub trait Material: DynClone + Send + Sync {
         pdf: &mut f32,
     ) -> bool;
 
-    fn emitted(&self, u: f32, v: f32, p: &Point3) -> Color;
+    fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f32, v: f32, p: &Point3) -> Color;
 
     fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f32;
 }
@@ -32,7 +32,7 @@ impl Material for NoneMaterial {
         false
     }
 
-    fn emitted(&self, _u: f32, _v: f32, _p: &Point3) -> Color {
+    fn emitted(&self, _: &Ray, _: &HitRecord, _u: f32, _v: f32, _p: &Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 
