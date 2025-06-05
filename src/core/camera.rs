@@ -2,8 +2,10 @@ use exr::prelude::*;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
-use crate::utils::{degrees_to_radians, random_double, random_double_range, INFINITY};
-use crate::{vec3, Color, HitRecord, Hittable, Interval, Point3, Ray, Vec3};
+use crate::utils::{self, degrees_to_radians, random_double, INFINITY};
+use crate::{pdf, vec3, Color, HitRecord, Hittable, Interval, Pdf, Point3, Ray, Vec3};
+
+use std::sync::Arc;
 
 pub struct Camera {
     pub aspect_ratio: f32,
@@ -72,27 +74,34 @@ impl Camera {
         Default::default()
     }
 
-    pub fn render(&mut self, world: &dyn Hittable) {
+    pub fn render(&mut self, world: &dyn Hittable, lights: Arc<dyn Hittable>) {
         self.initialize();
 
-        let pixels = self.render_pixels_parallel(world);
+        let pixels = self.render_pixels_parallel(world, lights);
         self.write_image(pixels);
     }
 
-    pub fn render_pixels_parallel(&self, world: &dyn Hittable) -> Vec<(usize, usize, Vec3)> {
+    pub fn render_pixels_parallel(
+        &self,
+        world: &dyn Hittable,
+        lights: Arc<dyn Hittable>,
+    ) -> Vec<(usize, usize, Vec3)> {
         let total_pixels = (self.image_height * self.image_width) as u64;
         (0..self.image_height)
             .into_par_iter()
             .flat_map(|y| {
-                (0..self.image_width).into_par_iter().map(move |x| {
-                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                    for s_j in 0..self.sqrt_spp {
-                        for s_i in 0..self.sqrt_spp {
-                            let ray = self.get_ray(x, y, s_i, s_j);
-                            pixel_color += self.ray_color(&ray, self.max_depth, world);
+                (0..self.image_width).into_par_iter().map({
+                    let value = lights.clone();
+                    move |x| {
+                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        for s_j in 0..self.sqrt_spp {
+                            for s_i in 0..self.sqrt_spp {
+                                let ray = self.get_ray(x, y, s_i, s_j);
+                                pixel_color += self.ray_color(&ray, self.max_depth, world, &value);
+                            }
                         }
+                        (x, y, self.pixel_samples_scale * pixel_color)
                     }
-                    (x, y, self.pixel_samples_scale * pixel_color)
                 })
             })
             .progress_count(total_pixels)
@@ -104,7 +113,11 @@ impl Camera {
         let mut pixel_map = vec![vec![[0.0f32; 3]; self.image_width]; self.image_height];
 
         for (x, y, col) in pixels {
-            pixel_map[y][x] = [col.x(), col.y(), col.z()];
+            pixel_map[y][x] = [
+                col.x().is_nan().then_some(0.).unwrap_or(col.x()),
+                col.y().is_nan().then_some(0.).unwrap_or(col.y()),
+                col.z().is_nan().then_some(0.).unwrap_or(col.z()),
+            ];
         }
 
         for row in pixel_map {
@@ -191,7 +204,13 @@ impl Camera {
         self.defocus_disk_v = defocus_radius * self.v;
     }
 
-    fn ray_color(&self, r: &Ray, depth: usize, world: &dyn Hittable) -> Color {
+    fn ray_color(
+        &self,
+        r: &Ray,
+        depth: usize,
+        world: &dyn Hittable,
+        lights: &Arc<dyn Hittable>,
+    ) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -201,10 +220,10 @@ impl Camera {
             return self.background;
         }
 
-        let mut scattered = Ray::default();
-        let mut attenuation = Color::default();
-        let mut pdf_value = 0.;
-        let color_from_emission = rec.mat.emitted(r, &rec, rec.u, rec.v, &rec.p);
+        let mut scattered: Ray = Ray::default();
+        let mut attenuation: Color = Color::default();
+        let mut pdf_value: f32 = 0.;
+        let color_from_emission: Color = rec.mat.emitted(r, &rec, rec.u, rec.v, &rec.p);
 
         if !rec
             .mat
@@ -213,31 +232,17 @@ impl Camera {
             return color_from_emission;
         }
 
-        let on_light = Point3::new(
-            random_double_range(213., 343.),
-            554.,
-            random_double_range(227., 332.),
-        );
-        let to_light = on_light - rec.p;
-        let distance_squared = to_light.length_squared();
-        let to_light = vec3::unit_vector(to_light);
-
-        if vec3::dot(to_light, rec.normal) < 0. {
-            return color_from_emission;
-        }
-        let light_area = (343. - 213.) * (332. - 227.);
-        let light_cosine = to_light.y().abs();
-        if light_cosine < 0.000001 {
-            return color_from_emission;
-        }
-
-        let pdf_value = distance_squared / (light_cosine * light_area);
-        scattered = Ray::new(rec.p, to_light, r.time());
+        let pdf0 = pdf::HittablePdf::new(lights.clone(), rec.p);
+        let pdf1 = pdf::CosinePdf::new(rec.p);
+        let mixture_pdf = pdf::MixturePdf::new(Arc::new(pdf0), Arc::new(pdf1));
+        scattered = Ray::new(rec.p, mixture_pdf.generate(), r.time());
+        pdf_value = mixture_pdf.value(scattered.direction());
 
         let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
 
-        let color_from_scatter =
-            scattering_pdf * attenuation * self.ray_color(&scattered, depth - 1, world) / pdf_value;
+        let sample_color = self.ray_color(&scattered, depth - 1, world, &lights);
+        let color_from_scatter = scattering_pdf * attenuation * sample_color / pdf_value;
+
         color_from_emission + color_from_scatter
     }
 }

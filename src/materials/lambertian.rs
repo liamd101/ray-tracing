@@ -40,13 +40,12 @@ impl Material for Lambertian {
         Color::new(0.0, 0.0, 0.0)
     }
 
-    fn scattering_pdf(&self, _: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
-        1. / std::f32::consts::PI
-        // let cos_theta = vec3::dot(rec.normal, vec3::unit_vector(scattered.direction()));
-        // if cos_theta < 0. {
-        //     0.
-        // } else {
-        //     cos_theta / std::f32::consts::PI
-        // }
+    fn scattering_pdf(&self, _: &Ray, rec: &HitRecord, scattered: &Ray) -> f32 {
+        let cos_theta = vec3::dot(rec.normal, vec3::unit_vector(scattered.direction()));
+        if cos_theta < 0. {
+            0.
+        } else {
+            cos_theta / std::f32::consts::PI
+        }
     }
 }

@@ -1,4 +1,7 @@
-use crate::{vec3, HitRecord, Hittable, Interval, Material, NoneMaterial, Point3, Ray, Vec3, AABB};
+use crate::{
+    utils, vec3, HitRecord, Hittable, Interval, Material, NoneMaterial, Point3, Ray, Vec3, AABB,
+    ONB,
+};
 
 use std::sync::Arc;
 
@@ -61,6 +64,18 @@ impl Sphere {
         *u = phi / (2.0 * std::f32::consts::PI);
         *v = theta / std::f32::consts::PI;
     }
+
+    fn random_to_sphere(radius: f32, distance_squared: f32) -> Vec3 {
+        let r1 = utils::random_double();
+        let r2 = utils::random_double();
+        let z = 1. + r2 * ((1. - (radius * radius / distance_squared)).sqrt() - 1.);
+
+        let phi = 2. * std::f32::consts::PI * r1;
+        let x = phi.cos() * (1. - z * z).sqrt();
+        let y = phi.sin() * (1. - z * z).sqrt();
+
+        Vec3::new(x, y, z)
+    }
 }
 
 impl Hittable for Sphere {
@@ -100,5 +115,29 @@ impl Hittable for Sphere {
 
     fn bounding_box(&self) -> &AABB {
         &self.bbox
+    }
+
+    fn random(&self, origin: Point3) -> Vec3 {
+        let direction = self.sphere_center(0.) - origin;
+        let distance_squared = direction.length_squared();
+        let uvw = ONB::new(direction);
+        uvw.transform(Sphere::random_to_sphere(self.radius, distance_squared))
+    }
+
+    fn pdf_value(&self, origin: Point3, direction: Vec3) -> f32 {
+        let mut rec = HitRecord::default();
+        if !self.hit(
+            &Ray::new(origin, direction, 0.),
+            &mut Interval::new(0.001, f32::INFINITY),
+            &mut rec,
+        ) {
+            return 0.;
+        }
+
+        let dist_squared = (self.sphere_center(0.) - origin).length_squared();
+        let cos_theta_max = (1. - (self.radius * self.radius)/dist_squared).sqrt();
+        let solid_angle = 2. * std::f32::consts::PI * (1. - cos_theta_max);
+
+        1. / solid_angle
     }
 }

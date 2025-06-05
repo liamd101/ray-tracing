@@ -1,7 +1,7 @@
 use ray_tracing::{
     new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, ConstantMedium, Dielectric,
-    DiffuseLight, HittableList, Lambertian, Metal, PerlinNoise, Point3, Quadrilateral as Quad,
-    RotateY, SolidColor, Sphere, Translate, Vec3,
+    DiffuseLight, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
+    Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3,
 };
 
 use clap::{Parser, Subcommand};
@@ -83,6 +83,7 @@ fn bouncing_spheres(image_width: usize, file_path: String) {
     )));
 
     let world = BvhNode::from_list(world);
+    let lights = Arc::new(HittableList::new());
 
     let mut cam: Camera = Camera::new();
     cam.aspect_ratio = 16.0 / 9.0;
@@ -100,7 +101,7 @@ fn bouncing_spheres(image_width: usize, file_path: String) {
     cam.focus_dist = 10.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    cam.render(&world, lights);
 }
 
 fn checkered_spheres(image_width: usize, file_path: String) {
@@ -138,7 +139,7 @@ fn checkered_spheres(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    // cam.render(&world);
 }
 
 fn simple_light(image_width: usize, file_path: String) {
@@ -182,7 +183,7 @@ fn simple_light(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    // cam.render(&world);
 }
 
 fn quads(image_width: usize, file_path: String) {
@@ -242,7 +243,7 @@ fn quads(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    // cam.render(&world);
 }
 
 fn cornell_box(image_width: usize, file_path: String) {
@@ -251,7 +252,7 @@ fn cornell_box(image_width: usize, file_path: String) {
     let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
     let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
     let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
-    let light = DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)));
 
     world.add(Arc::new(Quad::new(
         Point3::new(555.0, 0.0, 0.0),
@@ -264,12 +265,6 @@ fn cornell_box(image_width: usize, file_path: String) {
         Vec3::new(0.0, 555.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
         Arc::new(red),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(343.0, 554.0, 332.0),
-        Vec3::new(-130.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -105.0),
-        Arc::new(light),
     )));
     world.add(Arc::new(Quad::new(
         Point3::new(0.0, 0.0, 0.0),
@@ -289,6 +284,12 @@ fn cornell_box(image_width: usize, file_path: String) {
         Vec3::new(0.0, 555.0, 0.0),
         Arc::new(white.clone()),
     )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(343., 554., 332.),
+        Vec3::new(-130., 0., 0.),
+        Vec3::new(0., 0., -105.),
+        light,
+    )));
 
     let box1 = new_box(
         Point3::new(0.0, 0.0, 0.0),
@@ -299,22 +300,37 @@ fn cornell_box(image_width: usize, file_path: String) {
     let box1 = Translate::new(Arc::new(box1), Vec3::new(265.0, 0.0, 295.0));
     world.add(Arc::new(box1));
 
-    let box2 = new_box(
-        Point3::new(0.0, 0.0, 0.0),
-        Point3::new(165.0, 165.0, 165.0),
-        Arc::new(white.clone()),
-    );
-    let box2 = RotateY::new(Arc::new(box2), -18.0);
-    let box2 = Translate::new(Arc::new(box2), Vec3::new(130.0, 0.0, 65.0));
+    // let box2 = new_box(
+    //     Point3::new(0.0, 0.0, 0.0),
+    //     Point3::new(165.0, 165.0, 165.0),
+    //     Arc::new(white.clone()),
+    // );
+    // let box2 = RotateY::new(Arc::new(box2), -18.0);
+    // let box2 = Translate::new(Arc::new(box2), Vec3::new(130.0, 0.0, 65.0));
+    // world.add(Arc::new(box2));
 
-    world.add(Arc::new(box2));
+    let glass = Arc::new(Dielectric::new(0.));
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(190., 90., 190.),
+        90.,
+        glass,
+    )));
+
+    let empty_mat = Arc::new(NoneMaterial);
+    let lights = Arc::new(Quad::new(
+        Point3::new(343., 554., 332.),
+        Vec3::new(-130., 0., 0.),
+        Vec3::new(0., 0., -105.),
+        empty_mat,
+    ));
 
     let world = BvhNode::from_list(world);
 
     let mut cam = Camera::new();
     cam.aspect_ratio = 1.0;
     cam.image_width = image_width;
-    cam.samples_per_pixel = 500;
+    // cam.samples_per_pixel = 500;
+    cam.samples_per_pixel = 1000;
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
@@ -326,7 +342,7 @@ fn cornell_box(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    cam.render(&world, lights);
 }
 
 fn perlin_spheres(image_width: usize, file_path: String) {
@@ -364,7 +380,7 @@ fn perlin_spheres(image_width: usize, file_path: String) {
     cam.focus_dist = 10.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    // cam.render(&world);
 }
 
 fn cornell_smoke(image_width: usize, file_path: String) {
@@ -460,7 +476,7 @@ fn cornell_smoke(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    // cam.render(&world);
 }
 
 fn final_scene(image_width: usize, file_path: String) {
@@ -578,7 +594,7 @@ fn final_scene(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    cam.render(&world);
+    // cam.render(&world);
 }
 
 #[derive(Parser)]

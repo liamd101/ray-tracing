@@ -15,3 +15,5 @@ pub mod utils;
 pub use interval::Interval;
 pub(crate) mod onb;
 pub use onb::ONB;
+pub(crate) mod pdf;
+pub use pdf::{CosinePdf, Pdf, SpherePdf};

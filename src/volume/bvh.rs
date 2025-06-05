@@ -1,4 +1,4 @@
-use crate::{HitRecord, Hittable, HittableList, Interval, Ray, AABB};
+use crate::{HitRecord, Hittable, HittableList, Interval, Ray, AABB, Point3, Vec3};
 
 use std::sync::Arc;
 
@@ -137,5 +137,13 @@ impl Hittable for BvhNode {
 
     fn bounding_box(&self) -> &AABB {
         &self.bbox
+    }
+
+    fn random(&self, _origin: Point3) -> Vec3 {
+        Vec3::new(1., 0., 0.)
+    }
+
+    fn pdf_value(&self, _origin: Point3, _direction: Vec3) -> f32 {
+        0.
     }
 }

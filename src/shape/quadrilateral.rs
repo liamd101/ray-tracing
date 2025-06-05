@@ -1,4 +1,6 @@
-use crate::{vec3, HitRecord, Hittable, HittableList, Interval, Material, Point3, Ray, Vec3, AABB};
+use crate::{
+    utils, vec3, HitRecord, Hittable, HittableList, Interval, Material, Point3, Ray, Vec3, AABB,
+};
 
 use std::sync::Arc;
 
@@ -11,6 +13,7 @@ pub struct Quadrilateral {
     bbox: AABB,
     normal: Vec3,
     d: f32,
+    area: f32,
 }
 
 impl Quadrilateral {
@@ -19,6 +22,8 @@ impl Quadrilateral {
         let normal = vec3::unit_vector(n);
         let d = vec3::dot(normal, q);
         let w = n / vec3::dot(n, n);
+
+        let area = n.length();
 
         let bbox_diagonal_1 = AABB::around_points(q, q + u + v);
         let bbox_diagonal_2 = AABB::around_points(q + u, q + v);
@@ -33,6 +38,7 @@ impl Quadrilateral {
             bbox,
             normal,
             d,
+            area,
         }
     }
 
@@ -81,6 +87,26 @@ impl Hittable for Quadrilateral {
 
     fn bounding_box(&self) -> &AABB {
         &self.bbox
+    }
+
+    fn random(&self, origin: Point3) -> Vec3 {
+        let p = self.q + (utils::random_double() * self.u) + (utils::random_double() * self.v);
+        p - origin
+    }
+
+    fn pdf_value(&self, origin: Point3, direction: Vec3) -> f32 {
+        let mut rec = HitRecord::default();
+        if !self.hit(
+            &Ray::new(origin, direction, 0.),
+            &mut Interval::new(0.001, f32::INFINITY),
+            &mut rec,
+        ) {
+            return 0.;
+        }
+        let distance_squared = rec.t * rec.t * direction.length_squared();
+        let cosine = (vec3::dot(direction, rec.normal) / direction.length()).abs();
+
+        distance_squared / (cosine * self.area)
     }
 }
 

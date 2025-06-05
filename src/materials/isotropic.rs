@@ -25,19 +25,19 @@ impl Material for Isotropic {
         rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
-        _pdf: &mut f32,
+        pdf: &mut f32,
     ) -> bool {
         *scattered = Ray::new(rec.p, vec3::random_unit_vector(), r_in.time());
         *attenuation = self.tex.value(rec.u, rec.v, &rec.p);
+        *pdf = 1. / (4. * std::f32::consts::PI);
         true
     }
 
-    // default emission (we are not a light)
     fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: &vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 
     fn scattering_pdf(&self, _: &Ray, _: &HitRecord, _: &Ray) -> f32 {
-        0.
+        1. / (4. * std::f32::consts::PI)
     }
 }

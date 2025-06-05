@@ -1,5 +1,6 @@
-use crate::{HitRecord, Hittable, Interval, Ray, AABB};
+use crate::{HitRecord, Hittable, Interval, Point3, Ray, Vec3, AABB};
 use std::sync::Arc;
+use rand::Rng;
 
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>,
@@ -31,6 +32,19 @@ impl Hittable for HittableList {
 
     fn bounding_box(&self) -> &AABB {
         &self.bbox
+    }
+
+    fn random(&self, origin: Point3) -> Vec3 {
+        self.objects[rand::thread_rng().gen_range(0..self.objects.len())].random(origin)
+    }
+
+    fn pdf_value(&self, origin: Point3, direction: Vec3) -> f32 {
+        let weight = 1. / self.objects.len() as f32;
+        let mut sum = 0.;
+        for obj in &self.objects {
+            sum += weight * obj.pdf_value(origin, direction);
+        }
+        sum
     }
 }
 

@@ -1,4 +1,6 @@
-use crate::{utils, Color, HitRecord, Hittable, Interval, Isotropic, Material, Texture, Vec3};
+use crate::{
+    utils, Color, HitRecord, Hittable, Interval, Isotropic, Material, Point3, Texture, Vec3,
+};
 
 use std::sync::Arc;
 
@@ -74,5 +76,13 @@ impl Hittable for ConstantMedium {
 
     fn bounding_box(&self) -> &super::AABB {
         self.boundary.bounding_box()
+    }
+
+    fn random(&self, _origin: Point3) -> Vec3 {
+        Vec3::new(1., 0., 0.)
+    }
+
+    fn pdf_value(&self, _origin: Point3, _direction: Vec3) -> f32 {
+        0.
     }
 }
