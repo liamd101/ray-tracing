@@ -1,6 +1,8 @@
-use crate::{vec3, Color, HitRecord, Material, Ray, SolidColor, Texture};
+use crate::{vec3, Color, HitRecord, Material, Ray, SolidColor, SpherePdf, Texture};
 
 use std::sync::Arc;
+
+use super::material::ScatterRecord;
 
 #[derive(Clone)]
 pub struct Isotropic {
@@ -19,21 +21,14 @@ impl Isotropic {
 }
 
 impl Material for Isotropic {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Color,
-        scattered: &mut Ray,
-        pdf: &mut f32,
-    ) -> bool {
-        *scattered = Ray::new(rec.p, vec3::random_unit_vector(), r_in.time());
-        *attenuation = self.tex.value(rec.u, rec.v, &rec.p);
-        *pdf = 1. / (4. * std::f32::consts::PI);
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
+        srec.attenuation = self.tex.value(rec.u, rec.v, rec.p);
+        srec.pdf = Arc::new(SpherePdf::new(rec.normal));
+        srec.skip_pdf = false;
         true
     }
 
-    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: &vec3::Point3) -> Color {
+    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 

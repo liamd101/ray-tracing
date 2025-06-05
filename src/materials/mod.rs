@@ -8,6 +8,6 @@ pub(crate) mod isotropic;
 pub use dialectric::Dielectric;
 pub use lambertian::Lambertian;
 pub use lights::DiffuseLight;
-pub use material::{Material, NoneMaterial};
+pub use material::{Material, NoneMaterial, ScatterRecord};
 pub use metal::Metal;
 pub use isotropic::Isotropic;

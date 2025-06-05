@@ -82,7 +82,7 @@ impl Pdf for MixturePdf {
         if utils::random_double() < 0.5 {
             self.pdfs[0].generate()
         } else {
-            self.pdfs[0].generate()
+            self.pdfs[1].generate()
         }
     }
 

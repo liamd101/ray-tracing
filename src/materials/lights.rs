@@ -24,14 +24,12 @@ impl Material for DiffuseLight {
         &self,
         _: &crate::Ray,
         _: &crate::HitRecord,
-        _: &mut crate::Color,
-        _: &mut crate::Ray,
-        _pdf: &mut f32,
+        _: &mut crate::ScatterRecord,
     ) -> bool {
         false
     }
 
-    fn emitted(&self, _: &Ray, rec: &HitRecord, u: f32, v: f32, p: &Point3) -> Color {
+    fn emitted(&self, _: &Ray, rec: &HitRecord, u: f32, v: f32, p: Point3) -> Color {
         if !rec.front_face {
             Color::new(0., 0., 0.)
         } else {

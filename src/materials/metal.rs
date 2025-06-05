@@ -1,5 +1,7 @@
 use crate::{vec3, Color, HitRecord, Material, Ray};
 
+use super::material::ScatterRecord;
+
 #[derive(Clone)]
 pub struct Metal {
     albedo: Color,
@@ -18,18 +20,17 @@ impl Material for Metal {
         &self,
         r_in: &Ray,
         rec: &HitRecord,
-        attenuation: &mut Color,
-        scattered: &mut Ray,
-        _pdf: &mut f32,
+        srec: &mut ScatterRecord,
     ) -> bool {
         let reflected = crate::vec3::reflect(r_in.direction(), rec.normal);
         let reflected = vec3::unit_vector(reflected) + (self.fuzz * vec3::random_unit_vector());
-        *scattered = Ray::new(rec.p, reflected, r_in.time());
-        *attenuation = self.albedo;
-        vec3::dot(scattered.direction(), rec.normal) > 0.0
+        srec.attenuation = self.albedo;
+        srec.skip_pdf = true;
+        srec.skip_pdf_ray = Ray::new(rec.p, reflected, r_in.time());
+        true
     }
 
-    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: &vec3::Point3) -> Color {
+    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 

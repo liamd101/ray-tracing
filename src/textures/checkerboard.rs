@@ -19,7 +19,7 @@ impl Checkerboard {
 }
 
 impl Texture for Checkerboard {
-    fn value(&self, u: f32, v: f32, p: &Point3) -> Color {
+    fn value(&self, u: f32, v: f32, p: Point3) -> Color {
         let x_int = (self.inv_scale * p.x()).floor() as i32;
         let y_int = (self.inv_scale * p.y()).floor() as i32;
         let z_int = (self.inv_scale * p.z()).floor() as i32;

@@ -2,8 +2,10 @@ use exr::prelude::*;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
-use crate::utils::{self, degrees_to_radians, random_double, INFINITY};
-use crate::{pdf, vec3, Color, HitRecord, Hittable, Interval, Pdf, Point3, Ray, Vec3};
+use crate::utils::{degrees_to_radians, random_double, INFINITY};
+use crate::{
+    pdf, vec3, Color, HitRecord, Hittable, Interval, Pdf, Point3, Ray, ScatterRecord, Vec3,
+};
 
 use std::sync::Arc;
 
@@ -114,9 +116,9 @@ impl Camera {
 
         for (x, y, col) in pixels {
             pixel_map[y][x] = [
-                col.x().is_nan().then_some(0.).unwrap_or(col.x()),
-                col.y().is_nan().then_some(0.).unwrap_or(col.y()),
-                col.z().is_nan().then_some(0.).unwrap_or(col.z()),
+                if col.x().is_nan() { 0. } else { col.x() },
+                if col.y().is_nan() { 0. } else { col.y() },
+                if col.z().is_nan() { 0. } else { col.z() },
             ];
         }
 
@@ -220,29 +222,26 @@ impl Camera {
             return self.background;
         }
 
-        let mut scattered: Ray = Ray::default();
-        let mut attenuation: Color = Color::default();
-        let mut pdf_value: f32 = 0.;
-        let color_from_emission: Color = rec.mat.emitted(r, &rec, rec.u, rec.v, &rec.p);
+        let mut srec: ScatterRecord = ScatterRecord::default();
+        let color_from_emission: Color = rec.mat.emitted(r, &rec, rec.u, rec.v, rec.p);
 
-        if !rec
-            .mat
-            .scatter(r, &rec, &mut attenuation, &mut scattered, &mut pdf_value)
-        {
+        if !rec.mat.scatter(r, &rec, &mut srec) {
             return color_from_emission;
         }
+        if srec.skip_pdf {
+            return srec.attenuation * self.ray_color(&srec.skip_pdf_ray, depth - 1, world, lights);
+        }
 
-        let pdf0 = pdf::HittablePdf::new(lights.clone(), rec.p);
-        let pdf1 = pdf::CosinePdf::new(rec.p);
-        let mixture_pdf = pdf::MixturePdf::new(Arc::new(pdf0), Arc::new(pdf1));
-        scattered = Ray::new(rec.p, mixture_pdf.generate(), r.time());
-        pdf_value = mixture_pdf.value(scattered.direction());
+        let light = Arc::new(pdf::HittablePdf::new(lights.clone(), rec.p));
+        let p = pdf::MixturePdf::new(light, srec.pdf);
+
+        let scattered = Ray::new(rec.p, p.generate(), r.time());
+        let pdf_value = p.value(scattered.direction());
 
         let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
+        let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
 
-        let sample_color = self.ray_color(&scattered, depth - 1, world, &lights);
-        let color_from_scatter = scattering_pdf * attenuation * sample_color / pdf_value;
-
+        let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
         color_from_emission + color_from_scatter
     }
 }

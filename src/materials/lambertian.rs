@@ -1,6 +1,8 @@
-use crate::{vec3, Color, HitRecord, Material, Ray, SolidColor, Texture, ONB};
+use crate::{vec3, Color, CosinePdf, HitRecord, Material, Ray, SolidColor, Texture};
 
 use std::sync::Arc;
+
+use super::material::ScatterRecord;
 
 #[derive(Clone)]
 pub struct Lambertian {
@@ -19,24 +21,14 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Color,
-        scattered: &mut Ray,
-        pdf: &mut f32,
-    ) -> bool {
-        let uvw = ONB::new(rec.normal);
-        // let mut scatter_direction = rec.normal + vec3::random_unit_vector();
-        let scatter_direction = uvw.transform(vec3::random_cosine_direction());
-        *scattered = Ray::new(rec.p, vec3::unit_vector(scatter_direction), r_in.time());
-        *attenuation = self.tex.value(rec.u, rec.v, &rec.p);
-        *pdf = vec3::dot(uvw.w(), scattered.direction()) / std::f32::consts::PI;
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
+        srec.attenuation = self.tex.value(rec.u, rec.v, rec.p);
+        srec.pdf = Arc::new(CosinePdf::new(rec.normal));
+        srec.skip_pdf = false;
         true
     }
 
-    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: &vec3::Point3) -> Color {
+    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 

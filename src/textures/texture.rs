@@ -1,7 +1,7 @@
 use crate::{Color, Point3};
 
 pub trait Texture: Send + Sync {
-    fn value(&self, u: f32, v: f32, p: &Point3) -> Color;
+    fn value(&self, u: f32, v: f32, p: Point3) -> Color;
 }
 
 #[derive(Default, Clone)]
@@ -9,7 +9,7 @@ pub struct SolidColor {
     albedo: Color,
 }
 impl Texture for SolidColor {
-    fn value(&self, _: f32, _: f32, _: &Point3) -> Color {
+    fn value(&self, _: f32, _: f32, _: Point3) -> Color {
         self.albedo
     }
 }
