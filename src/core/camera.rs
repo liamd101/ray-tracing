@@ -88,9 +88,9 @@ impl Camera {
         world: &dyn Hittable,
         lights: Arc<dyn Hittable>,
     ) -> Vec<(usize, usize, Vec3)> {
-        let total_pixels = (self.image_height * self.image_width) as u64;
         (0..self.image_height)
             .into_par_iter()
+            .progress_count(self.image_height as u64)
             .flat_map(|y| {
                 (0..self.image_width).into_par_iter().map({
                     let value = lights.clone();
@@ -106,7 +106,6 @@ impl Camera {
                     }
                 })
             })
-            .progress_count(total_pixels)
             .collect()
     }
 
