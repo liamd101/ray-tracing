@@ -9,3 +9,6 @@ pub mod materials;
 pub use materials::*;
 pub mod textures;
 pub use textures::*;
+pub mod radiometry;
+pub mod config;
+pub use config::*;

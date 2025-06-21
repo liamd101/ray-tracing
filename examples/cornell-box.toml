@@ -1,0 +1,13 @@
+[camera]
+file_path = 'cornell-box.ppm'
+aspect_ratio = 1.0
+image_width = 400
+samples_per_pixel = 100
+max_depth = 50
+vfov = 40.0
+defocus_angle = 0.0
+focus_dist = 10.0
+background = [0.0, 0.0, 0.0]
+look_from = [278.0, 278.0, -800.0]
+look_at = [278.0, 278.0, 0.0]
+vup = [0.0, 1.0, 0.0]

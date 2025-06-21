@@ -1,7 +1,8 @@
 use crate::utils::{random_double, random_double_range};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::ops;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vec3(pub [f32; 3]);
 pub type Point3 = Vec3;
 
@@ -51,6 +52,25 @@ impl Vec3 {
     pub fn near_zero(&self) -> bool {
         let s = 1e-8;
         self.0[0].abs() < s && self.0[1].abs() < s && self.0[2].abs() < s
+    }
+}
+
+impl Serialize for Vec3 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        [self.x(), self.y(), self.z()].serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Vec3 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let arr: [f32; 3] = Deserialize::deserialize(deserializer)?;
+        Ok(Vec3::new(arr[0], arr[1], arr[2]))
     }
 }
 

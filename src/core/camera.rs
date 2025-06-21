@@ -7,7 +7,9 @@ use crate::{
     pdf, vec3, Color, HitRecord, Hittable, Interval, Pdf, Point3, Ray, ScatterRecord, Vec3,
 };
 
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use toml;
 
 pub struct Camera {
     pub aspect_ratio: f32,
@@ -78,7 +80,6 @@ impl Camera {
 
     pub fn render(&mut self, world: &dyn Hittable, lights: Arc<dyn Hittable>) {
         self.initialize();
-
         let pixels = self.render_pixels_parallel(world, lights);
         self.write_image(pixels);
     }
@@ -242,5 +243,46 @@ impl Camera {
 
         let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
         color_from_emission + color_from_scatter
+    }
+
+    pub fn from_toml_file(path: &str) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+        let toml_content = std::fs::read_to_string(path)?;
+        let config: CameraConfig = toml::from_str(&toml_content)?;
+        Ok(config.into())
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct CameraConfig {
+    pub aspect_ratio: f32,
+    pub image_width: usize,
+    pub samples_per_pixel: usize,
+    pub max_depth: usize,
+    pub background: Color,
+    pub vfov: f32,
+    pub look_from: Point3,
+    pub look_at: Point3,
+    pub vup: Vec3,
+    pub defocus_angle: f32,
+    pub focus_dist: f32,
+    pub file_path: String,
+}
+
+impl From<CameraConfig> for Camera {
+    fn from(config: CameraConfig) -> Self {
+        let mut camera = Camera::default();
+        camera.aspect_ratio = config.aspect_ratio;
+        camera.image_width = config.image_width;
+        camera.samples_per_pixel = config.samples_per_pixel;
+        camera.max_depth = config.max_depth;
+        camera.background = config.background;
+        camera.vfov = config.vfov;
+        camera.look_from = config.look_from;
+        camera.look_at = config.look_at;
+        camera.vup = config.vup;
+        camera.defocus_angle = config.defocus_angle;
+        camera.focus_dist = config.focus_dist;
+        camera.file_path = config.file_path;
+        camera
     }
 }

@@ -1,7 +1,7 @@
 use ray_tracing::{
     new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, ConstantMedium, Dielectric,
     DiffuseLight, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
-    Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3,
+    Quadrilateral as Quad, RotateY, SceneConfig, SolidColor, Sphere, Translate, Vec3,
 };
 
 use clap::{Parser, Subcommand};
@@ -380,7 +380,7 @@ fn cornell_smoke(image_width: usize, file_path: String) {
     // cam.render(&world);
 }
 
-fn cornell_box(image_width: usize, file_path: String) {
+fn cornell_box(file_path: String) {
     let mut world = HittableList::new();
     let mut lights = HittableList::new();
 
@@ -481,22 +481,9 @@ fn cornell_box(image_width: usize, file_path: String) {
 
     let world = BvhNode::from_list(world);
 
-    let mut cam = Camera::new();
-    cam.aspect_ratio = 1.0;
-    cam.image_width = image_width;
-    cam.samples_per_pixel = 100;
-    // cam.samples_per_pixel = 1000;
-    cam.max_depth = 50;
-    cam.background = Color::new(0.0, 0.0, 0.0);
-
-    cam.vfov = 40.0;
-    cam.look_from = Point3::new(278.0, 278.0, -800.0);
-    cam.look_at = Point3::new(278.0, 278.0, 0.0);
-    cam.vup = Vec3::new(0.0, 1.0, 0.0);
-
-    cam.defocus_angle = 0.0;
-
-    cam.file_path = file_path;
+    let toml_string = std::fs::read_to_string(file_path).expect("couldn't open file");
+    let config: SceneConfig = toml::from_str(&toml_string).expect("invalid config file");
+    let mut cam: Camera = config.camera.into();
     cam.render(&world, Arc::new(lights));
 }
 
@@ -680,7 +667,7 @@ fn main() {
         Command::CheckeredSpheres => checkered_spheres(args.image_width, args.file_path),
         Command::SimpleLight => simple_light(args.image_width, args.file_path),
         Command::Quads => quads(args.image_width, args.file_path),
-        Command::CornellBox => cornell_box(args.image_width, args.file_path),
+        Command::CornellBox => cornell_box(args.file_path),
         Command::CornellSmoke => cornell_smoke(args.image_width, args.file_path),
         Command::PerlinSpheres => perlin_spheres(args.image_width, args.file_path),
         Command::FinalTest => final_scene(args.image_width, args.file_path),
