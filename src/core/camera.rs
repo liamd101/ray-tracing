@@ -253,6 +253,7 @@ impl Camera {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(default)]
 pub struct CameraConfig {
     pub aspect_ratio: f32,
     pub image_width: usize,
@@ -266,6 +267,25 @@ pub struct CameraConfig {
     pub defocus_angle: f32,
     pub focus_dist: f32,
     pub file_path: String,
+}
+
+impl Default for CameraConfig {
+    fn default() -> Self {
+        Self {
+            aspect_ratio: 16.0 / 9.0,
+            image_width: 400,
+            samples_per_pixel: 10,
+            max_depth: 10,
+            background: Color::new(0.0, 0.0, 0.0),
+            vfov: 90.0,
+            look_from: Point3::new(0.0, 0.0, 0.0),
+            look_at: Point3::new(0.0, 0.0, -1.0),
+            vup: Vec3::new(0.0, 1.0, 0.0),
+            defocus_angle: 0.0,
+            focus_dist: 10.0,
+            file_path: "image.ppm".into(),
+        }
+    }
 }
 
 impl From<CameraConfig> for Camera {
