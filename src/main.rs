@@ -391,15 +391,6 @@ fn cornell_box(file_path: String) {
     let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
     let light = Arc::new(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)));
 
-    let box1 = new_box(
-        Point3::new(0.0, 0.0, 0.0),
-        Point3::new(165.0, 330.0, 165.0),
-        Arc::new(white.clone()),
-    );
-    let box1 = RotateY::new(Arc::new(box1), 15.0);
-    let box1 = Translate::new(Arc::new(box1), Vec3::new(265.0, 0.0, 295.0));
-    world.add(Arc::new(box1));
-
     /*
     let metal = Metal::new(Color::new(0.8, 0.85, 0.88), 0.0);
     let box1 = new_box(
@@ -412,23 +403,23 @@ fn cornell_box(file_path: String) {
     world.add(Arc::new(box1));
     */
 
-    /*
-    let box2 = new_box(
-        Point3::new(0.0, 0.0, 0.0),
-        Point3::new(165.0, 165.0, 165.0),
-        Arc::new(white.clone()),
-    );
-    let box2 = RotateY::new(Arc::new(box2), -18.0);
-    let box2 = Translate::new(Arc::new(box2), Vec3::new(130.0, 0.0, 65.0));
-    world.add(Arc::new(box2));
-    */
+    // let box2 = new_box(
+    //     Point3::new(0.0, 0.0, 0.0),
+    //     Point3::new(165.0, 165.0, 165.0),
+    //     Arc::new(white.clone()),
+    // );
+    // let box2 = RotateY::new(Arc::new(box2), -18.0);
+    // let box2 = Translate::new(Arc::new(box2), Vec3::new(130.0, 0.0, 65.0));
+    // world.add(Arc::new(box2));
 
+    /*
     let glass = Arc::new(Dielectric::new(0.));
     world.add(Arc::new(Sphere::stationary(
         Point3::new(190., 90., 190.),
         90.,
         glass,
     )));
+    */
 
     world.add(Arc::new(Quad::new(
         Point3::new(343., 554., 332.),
