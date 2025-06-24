@@ -1,6 +1,6 @@
 use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::Point3, Pdf, SpherePdf, Vec3};
-use dyn_clone::DynClone;
 
+use dyn_clone::DynClone;
 use std::sync::Arc;
 
 pub struct ScatterRecord {

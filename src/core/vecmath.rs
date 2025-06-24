@@ -1,4 +1,4 @@
-use crate::{vec3, Vec3, utils};
+use crate::{vec3, Vec3};
 
 pub fn spherical_triangle_area(a: Vec3, b: Vec3, c: Vec3) -> f32 {
     let numerator = vec3::dot(a, vec3::cross(b, c));
@@ -18,9 +18,9 @@ pub fn spherical_quad_area(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> f32 {
     {
         return 0.;
     }
-    let axb = vec3::unit_vector(axb);
-    let bxc = vec3::unit_vector(bxc);
-    let cxd = vec3::unit_vector(cxd);
-    let dxa = vec3::unit_vector(dxa);
+    let _axb = vec3::unit_vector(axb);
+    let _bxc = vec3::unit_vector(bxc);
+    let _cxd = vec3::unit_vector(cxd);
+    let _dxa = vec3::unit_vector(dxa);
     todo!();
 }

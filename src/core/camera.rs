@@ -252,7 +252,7 @@ impl Camera {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(default)]
 pub struct CameraConfig {
     pub aspect_ratio: f32,

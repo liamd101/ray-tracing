@@ -1,7 +1,7 @@
 use ray_tracing::{
-    new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, ConstantMedium, Dielectric,
+    new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, Config, ConstantMedium, Dielectric,
     DiffuseLight, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
-    Quadrilateral as Quad, RotateY, SceneConfig, SolidColor, Sphere, Translate, Vec3,
+    Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3,
 };
 
 use clap::{Parser, Subcommand};
@@ -381,46 +381,15 @@ fn cornell_smoke(image_width: usize, file_path: String) {
 }
 
 fn cornell_box(file_path: String) {
-    let mut world = HittableList::new();
+    let toml_string = std::fs::read_to_string(file_path).expect("couldn't open file");
+    let config: Config = toml::from_str(&toml_string).expect("invalid config file");
+    let (mut camera, mut world) = config.to_scene().expect("invalid scene");
+
     let mut lights = HittableList::new();
 
     let empty_mat = Arc::new(NoneMaterial);
-    let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
     let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
-    let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
     let light = Arc::new(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)));
-
-    /* Add the different sides of the box */
-    world.add(Arc::new(Quad::new(
-        Point3::new(555.0, 0.0, 0.0),
-        Vec3::new(0.0, 555.0, 0.0),
-        Vec3::new(0.0, 0.0, 555.0),
-        Arc::new(green),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 555.0, 0.0),
-        Vec3::new(0.0, 0.0, 555.0),
-        Arc::new(red),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(0.0, 0.0, 0.0),
-        Vec3::new(555.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, 555.0),
-        Arc::new(white.clone()),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(555.0, 555.0, 555.0),
-        Vec3::new(-555.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -555.0),
-        Arc::new(white.clone()),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(0.0, 0.0, 555.0),
-        Vec3::new(555.0, 0.0, 0.0),
-        Vec3::new(0.0, 555.0, 0.0),
-        Arc::new(white.clone()),
-    )));
 
     let box1 = new_box(
         Point3::new(0.0, 0.0, 0.0),
@@ -460,11 +429,6 @@ fn cornell_box(file_path: String) {
         90.,
         glass,
     )));
-    // world.add(Arc::new(Sphere::stationary(
-    //     Point3::new(190., 90., 190.),
-    //     90.,
-    //     empty_mat.clone(),
-    // )));
 
     world.add(Arc::new(Quad::new(
         Point3::new(343., 554., 332.),
@@ -481,10 +445,7 @@ fn cornell_box(file_path: String) {
 
     let world = BvhNode::from_list(world);
 
-    let toml_string = std::fs::read_to_string(file_path).expect("couldn't open file");
-    let config: SceneConfig = toml::from_str(&toml_string).expect("invalid config file");
-    let mut cam: Camera = config.camera.into();
-    cam.render(&world, Arc::new(lights));
+    camera.render(&world, Arc::new(lights));
 }
 
 fn final_scene(image_width: usize, file_path: String) {
