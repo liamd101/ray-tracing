@@ -383,13 +383,7 @@ fn cornell_smoke(image_width: usize, file_path: String) {
 fn cornell_box(file_path: String) {
     let toml_string = std::fs::read_to_string(file_path).expect("couldn't open file");
     let config: Config = toml::from_str(&toml_string).expect("invalid config file");
-    let (mut camera, mut world) = config.to_scene().expect("invalid scene");
-
-    let mut lights = HittableList::new();
-
-    let empty_mat = Arc::new(NoneMaterial);
-    let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
-    let light = Arc::new(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)));
+    let (mut camera, world, lights) = config.to_scene().expect("invalid scene");
 
     /*
     let metal = Metal::new(Color::new(0.8, 0.85, 0.88), 0.0);
@@ -403,15 +397,6 @@ fn cornell_box(file_path: String) {
     world.add(Arc::new(box1));
     */
 
-    // let box2 = new_box(
-    //     Point3::new(0.0, 0.0, 0.0),
-    //     Point3::new(165.0, 165.0, 165.0),
-    //     Arc::new(white.clone()),
-    // );
-    // let box2 = RotateY::new(Arc::new(box2), -18.0);
-    // let box2 = Translate::new(Arc::new(box2), Vec3::new(130.0, 0.0, 65.0));
-    // world.add(Arc::new(box2));
-
     /*
     let glass = Arc::new(Dielectric::new(0.));
     world.add(Arc::new(Sphere::stationary(
@@ -420,19 +405,6 @@ fn cornell_box(file_path: String) {
         glass,
     )));
     */
-
-    world.add(Arc::new(Quad::new(
-        Point3::new(343., 554., 332.),
-        Vec3::new(-130., 0., 0.),
-        Vec3::new(0., 0., -105.),
-        light,
-    )));
-    lights.add(Arc::new(Quad::new(
-        Point3::new(343., 554., 332.),
-        Vec3::new(-130., 0., 0.),
-        Vec3::new(0., 0., -105.),
-        empty_mat.clone(),
-    )));
 
     let world = BvhNode::from_list(world);
 
@@ -614,6 +586,7 @@ fn pi_test() {
 
 fn main() {
     let args = Cli::parse();
+
     match args.command {
         Command::BouncingSpheres => bouncing_spheres(args.image_width, args.file_path),
         Command::CheckeredSpheres => checkered_spheres(args.image_width, args.file_path),

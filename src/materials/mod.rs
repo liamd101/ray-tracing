@@ -13,7 +13,7 @@ pub use material::{Material, NoneMaterial, ScatterRecord};
 pub use metal::Metal;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Copy)]
-#[serde(tag = "type", rename_all = "lowercase")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum MaterialConfig {
     None,
     Lambertian {
@@ -26,7 +26,6 @@ pub enum MaterialConfig {
     Dieletric {
         refraction_index: f32,
     },
-    #[serde(rename = "diffuse_light")]
     DiffuseLight {
         color: crate::Color,
     },

@@ -33,10 +33,12 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn to_scene(&self) -> Result<(crate::Camera, crate::HittableList), String> {
+    pub fn to_scene(
+        &self,
+    ) -> Result<(crate::Camera, crate::HittableList, crate::HittableList), String> {
         let camera = crate::Camera::from(self.camera.clone());
-        let world = crate::HittableList::try_from(self.scene.clone())?;
-        Ok((camera, world))
+        let (world, lights) = self.scene.process()?;
+        Ok((camera, world, lights))
     }
 }
 
@@ -47,17 +49,67 @@ pub struct SceneConfig {
     #[serde(default)]
     pub materials: std::collections::HashMap<String, crate::MaterialConfig>,
 }
-
-impl TryFrom<SceneConfig> for crate::HittableList {
-    type Error = String;
-    fn try_from(value: SceneConfig) -> Result<Self, Self::Error> {
+impl SceneConfig {
+    pub fn process(&self) -> Result<(crate::HittableList, crate::HittableList), String> {
         let mut world = crate::HittableList::new();
+        let mut lights = crate::HittableList::new();
 
-        for object in value.objects {
-            let object = object.to_hittable(&value.materials)?;
+        for object in &self.objects {
+            let object = object.to_hittable(&self.materials)?;
             world.add(object);
         }
 
-        Ok(world)
+        for light_config in &self.lights {
+            let empty_light = light_to_empty(light_config.clone());
+            println!("empty_light={:?}", empty_light);
+            let empty_light = empty_light.to_hittable(&self.materials)?;
+            world.add(empty_light);
+
+            println!("light_config={:?}", light_config);
+            let light = light_config.to_hittable(&self.materials)?;
+            lights.add(light);
+        }
+
+        Ok((world, lights))
+    }
+}
+
+fn light_to_empty(config: crate::ObjectConfig) -> crate::ObjectConfig {
+    match config {
+        crate::ObjectConfig::Quad {
+            corner,
+            u,
+            v,
+            transform,
+            ..
+        } => crate::ObjectConfig::Quad {
+            corner,
+            u,
+            v,
+            transform,
+            material: MaterialRef::Inline(crate::MaterialConfig::None),
+        },
+        crate::ObjectConfig::Sphere {
+            center,
+            radius,
+            transform,
+            ..
+        } => crate::ObjectConfig::Sphere {
+            center,
+            radius,
+            transform,
+            material: MaterialRef::Inline(crate::MaterialConfig::None),
+        },
+        crate::ObjectConfig::Box {
+            min,
+            max,
+            transform,
+            ..
+        } => crate::ObjectConfig::Box {
+            min,
+            max,
+            transform,
+            material: MaterialRef::Inline(crate::MaterialConfig::None),
+        },
     }
 }
