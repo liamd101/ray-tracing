@@ -1,4 +1,4 @@
-use crate::{HitRecord, Hittable, HittableList, Interval, Ray, AABB, Point3, Vec3};
+use crate::{HitRecord, Hittable, HittableList, Interval, Point3, Ray, Vec3, AABB};
 
 use std::sync::Arc;
 

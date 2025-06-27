@@ -5,14 +5,14 @@ pub fn blackbody(wavelength: f32, temp: f32) -> f32 {
     if temp <= 0. {
         return 0.;
     }
-    const c: f32 = 299792458.;
-    const h: f32 = 6.62606957e-34;
-    const kb: f32 = 1.3806488e-23;
+    const C: f32 = 299792458.;
+    const H: f32 = 6.626_069_7e-34;
+    const KB: f32 = 1.3806488e-23;
 
     let l_nm = wavelength * 1e-9;
 
-    (2. * h * c.powi(2))
-        / (l_nm.powi(5) * (std::f32::consts::E.powf(h * c / l_nm * kb * temp) - 1.))
+    (2. * H * C.powi(2))
+        / (l_nm.powi(5) * (std::f32::consts::E.powf(H * C / l_nm * KB * temp) - 1.))
 }
 
 pub fn find_interval<F>(sz: usize, pred: F) -> usize

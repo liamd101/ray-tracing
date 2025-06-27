@@ -1,9 +1,7 @@
-pub(crate) mod color;
-pub use color::Color;
 pub(crate) mod ray;
 pub use ray::Ray;
 pub mod vec3;
-pub use vec3::{Point3, Vec3};
+pub use vec3::{Color, Point3, Vec3};
 pub(crate) mod hittable;
 pub use hittable::{HitRecord, Hittable, RotateY, Translate};
 pub(crate) mod hittable_list;

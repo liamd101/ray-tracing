@@ -1,8 +1,8 @@
-use crate::{vec3, Color, CosinePdf, HitRecord, Material, Ray, SolidColor, Texture};
+use super::material::{Material, ScatterRecord};
+use crate::radiometry::sampling;
+use crate::{vec3, Color, CosinePdf, HitRecord, Ray, SolidColor, Texture};
 
 use std::sync::Arc;
-
-use super::material::ScatterRecord;
 
 #[derive(Clone)]
 pub struct Lambertian {
@@ -39,5 +39,16 @@ impl Material for Lambertian {
         } else {
             cos_theta / std::f32::consts::PI
         }
+    }
+    fn emitted_spectrum(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        u: f32,
+        v: f32,
+        p: vec3::Point3,
+        lambda: &sampling::SampledWavelengths,
+    ) -> sampling::SampledSpectrum {
+        todo!()
     }
 }

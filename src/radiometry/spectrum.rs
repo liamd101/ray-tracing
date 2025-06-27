@@ -1,165 +1,31 @@
 use crate::core::utils::lerp;
+use crate::radiometry::color::XYZ;
+use crate::radiometry::sampling::{SampledSpectrum, SampledWavelengths, NUM_SPECTRUM_SAMPLES};
 use crate::radiometry::utils::{blackbody, find_interval, LAMBDA_MAX, LAMBDA_MIN};
 
-const NUM_SPECTRUM_SAMPLES: usize = 4;
-
-struct SampledWavelengths {
-    lambdas: [f32; NUM_SPECTRUM_SAMPLES],
-    values: [f32; NUM_SPECTRUM_SAMPLES],
-    pdf: [f32; NUM_SPECTRUM_SAMPLES],
-}
-impl Default for SampledWavelengths {
-    fn default() -> Self {
-        Self {
-            values: [0.; NUM_SPECTRUM_SAMPLES],
-            pdf: [0.; NUM_SPECTRUM_SAMPLES],
-            lambdas: [0.; NUM_SPECTRUM_SAMPLES],
-        }
-    }
-}
-impl SampledWavelengths {
-    pub fn uniform(u: f32, lambda_min: f32, lambda_max: f32) -> Self {
-        let mut swl: SampledWavelengths = Default::default();
-        swl.lambdas[0] = lerp(u, lambda_min, lambda_max);
-        let _delta = (lambda_max - lambda_min) / NUM_SPECTRUM_SAMPLES as f32;
-        for _i in 1..NUM_SPECTRUM_SAMPLES {}
-        swl
-    }
-}
-
-struct SampledSpectrum {
-    values: [f32; NUM_SPECTRUM_SAMPLES],
-}
-impl Default for SampledSpectrum {
-    fn default() -> Self {
-        Self {
-            values: [0.; NUM_SPECTRUM_SAMPLES],
-        }
-    }
-}
-impl SampledSpectrum {
-    pub fn new(v: &[f32; NUM_SPECTRUM_SAMPLES]) -> Self {
-        let mut values: [f32; NUM_SPECTRUM_SAMPLES] = [0.; NUM_SPECTRUM_SAMPLES];
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            values[i] = v[i];
-        }
-        Self { values }
-    }
-
-    pub fn call(&self) -> bool {
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            if self[i] != 0. {
-                return true;
-            }
-        }
-        false
-    }
-
-    pub fn safe_div(a: SampledSpectrum, b: SampledSpectrum) -> SampledSpectrum {
-        let mut r: SampledSpectrum = Default::default();
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            r[i] = if b[i] != 0. { a[i] / b[i] } else { 0. };
-        }
-        r
-    }
-
-    pub fn average(&self) -> f32 {
-        self.values.iter().sum::<f32>() / (self.values.len() as f32)
-    }
-
-    pub fn bool(&self) -> bool {
-        self.values.iter().any(|&x| x != 0.)
-    }
-}
-
-impl std::ops::Index<usize> for SampledSpectrum {
-    type Output = f32;
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.values[index]
-    }
-}
-impl std::ops::IndexMut<usize> for SampledSpectrum {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.values[index]
-    }
-}
-impl std::ops::Sub for SampledSpectrum {
-    type Output = Self;
-    fn sub(self, rhs: Self) -> Self {
-        let mut out: Self = Default::default();
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            out[i] = self[i] - rhs[i];
-        }
-        out
-    }
-}
-impl std::ops::Add for SampledSpectrum {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self {
-        let mut out: Self = Default::default();
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            out[i] = self[i] + rhs[i];
-        }
-        out
-    }
-}
-impl std::ops::Mul for SampledSpectrum {
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
-        let mut out: Self = Default::default();
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            out[i] = self[i] * rhs[i];
-        }
-        out
-    }
-}
-impl std::ops::Div for SampledSpectrum {
-    type Output = Self;
-    fn div(self, rhs: Self) -> Self {
-        let mut out: Self = Default::default();
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            out[i] = self[i] / rhs[i];
-        }
-        out
-    }
-}
-impl std::ops::DivAssign for SampledSpectrum {
-    fn div_assign(&mut self, rhs: Self) {
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            self[i] /= rhs[i];
-        }
-    }
-}
-impl std::ops::MulAssign for SampledSpectrum {
-    fn mul_assign(&mut self, rhs: Self) {
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            self[i] *= rhs[i];
-        }
-    }
-}
-impl std::ops::SubAssign for SampledSpectrum {
-    fn sub_assign(&mut self, rhs: Self) {
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            self[i] -= rhs[i];
-        }
-    }
-}
-impl std::ops::AddAssign for SampledSpectrum {
-    fn add_assign(&mut self, rhs: Self) {
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            self[i] += rhs[i];
-        }
-    }
-}
-
 /// Implementation of a spectral distributions
-trait Spectrum {
+pub trait Spectrum: Sync + Send {
     /// Takes in a wavelength and returns the value of the distribution at that wavelength
     fn call(&self, wavelength: f32) -> f32;
     /// Returns the maximum value achieved by the corresponding distribution
     fn max_value(&self) -> f32;
     /// Samples all values in `wavelengths` using `Spectrum::call` method on each wavelength
     fn sample(&self, wavelengths: &SampledWavelengths) -> SampledSpectrum;
+}
+
+fn inner_product(f: &dyn Spectrum, g: &dyn Spectrum) -> f32 {
+    let mut integral = 0.;
+    for lambda in (LAMBDA_MIN as usize)..=(LAMBDA_MAX as usize) {
+        integral += f.call(lambda as f32) * g.call(lambda as f32);
+    }
+    integral
+}
+fn spectrum_to_XYZ(s: &dyn Spectrum) -> XYZ {
+    XYZ {
+        X: inner_product(&DenselySampledSpectrum::X(), s),
+        Y: inner_product(&DenselySampledSpectrum::Y(), s),
+        Z: inner_product(&DenselySampledSpectrum::Z(), s),
+    }
 }
 
 struct ConstantSpectrum {
@@ -187,7 +53,7 @@ impl Spectrum for ConstantSpectrum {
 /// This is the most accurate representation of an illumination spectrum I have implemented
 /// For every wavelength in between `lambda_min` and `lambda_max`, it stores the corresponding
 /// value. For the entire visible light range, this corresponds to 470 values
-struct DenselySampledSpectrum {
+pub struct DenselySampledSpectrum {
     lambda_min: isize,
     lambda_max: isize,
     values: Vec<f32>,
@@ -225,11 +91,21 @@ impl DenselySampledSpectrum {
             *num *= s;
         }
     }
+
+    pub fn X() -> Self {
+        todo!()
+    }
+    pub fn Y() -> Self {
+        todo!()
+    }
+    pub fn Z() -> Self {
+        todo!()
+    }
 }
 
 impl Spectrum for DenselySampledSpectrum {
     fn call(&self, lambda: f32) -> f32 {
-        let offset = lambda.round() as isize - self.lambda_min as isize;
+        let offset = lambda.round() as isize - self.lambda_min;
         if offset < 0 || offset >= self.values.len() as isize {
             0.
         } else {
@@ -248,7 +124,7 @@ impl Spectrum for DenselySampledSpectrum {
     fn sample(&self, wavelengths: &SampledWavelengths) -> SampledSpectrum {
         let mut s: SampledSpectrum = Default::default();
         for i in 0..NUM_SPECTRUM_SAMPLES {
-            let offset = wavelengths.values[i].round() as isize - self.lambda_min as isize;
+            let offset = wavelengths.lambdas[i].round() as isize - self.lambda_min;
             if offset < 0 || offset >= self.values.len() as isize {
                 s.values[i] = 0.;
             } else {
@@ -282,7 +158,7 @@ impl PartialEq for DenselySampledSpectrum {
 /// It stores vectors of wavelength-value pairs, which are linearly interpolated to achieve an
 /// estimate of a real illumination spectrum
 #[derive(Default)]
-struct PiecewiseLinearSpectrum {
+pub struct PiecewiseLinearSpectrum {
     /// The wavelengths to be used in interpolation
     lambdas: Vec<f32>,
     /// The corresponding values to be used in interpolation
@@ -304,7 +180,7 @@ impl Spectrum for PiecewiseLinearSpectrum {
         lerp(t, self.lambdas[o], self.lambdas[o + 1])
     }
 
-    fn sample(&self, wavelengths: &SampledWavelengths) -> SampledSpectrum {
+    fn sample(&self, _: &SampledWavelengths) -> SampledSpectrum {
         let mut s: SampledSpectrum = Default::default();
         for i in 0..NUM_SPECTRUM_SAMPLES {
             s.values[i] = self.call(i as f32);
@@ -322,13 +198,13 @@ impl Spectrum for PiecewiseLinearSpectrum {
 }
 
 /// A spectrum corresponding to a blackbody illuminator at a specific temperature
-struct BlackbodySpectrum {
+pub struct BlackbodySpectrum {
     temp: f32,
     norm_factor: f32,
 }
 impl BlackbodySpectrum {
     pub fn new(temp: f32) -> Self {
-        let lambda_max = 2.8977721e-3 / temp;
+        let lambda_max = 2.897_772e-3 / temp;
         Self {
             temp,
             norm_factor: blackbody(lambda_max * 1e-9, temp),
@@ -348,7 +224,7 @@ impl Spectrum for BlackbodySpectrum {
     fn sample(&self, wavelengths: &SampledWavelengths) -> SampledSpectrum {
         let mut s: SampledSpectrum = Default::default();
         for i in 0..NUM_SPECTRUM_SAMPLES {
-            s.values[i] = self.call(wavelengths.values[i]);
+            s.values[i] = self.call(wavelengths.lambdas[i]);
         }
         s
     }

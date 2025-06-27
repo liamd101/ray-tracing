@@ -81,7 +81,7 @@ impl ObjectConfig {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Default)]
 pub struct TransformConfig {
     #[serde(default)]
     pub translate: Option<Vec3>,
@@ -93,18 +93,6 @@ pub struct TransformConfig {
     pub rotate_z: Option<f32>, // degrees
     #[serde(default)]
     pub scale: Option<Vec3>,
-}
-
-impl Default for TransformConfig {
-    fn default() -> Self {
-        Self {
-            translate: None,
-            rotate_y: None,
-            rotate_x: None,
-            rotate_z: None,
-            scale: None,
-        }
-    }
 }
 
 impl TransformConfig {

@@ -5,6 +5,7 @@ use std::ops;
 #[derive(Clone, Copy, Debug)]
 pub struct Vec3(pub [f32; 3]);
 pub type Point3 = Vec3;
+pub type Color = Vec3;
 
 impl Default for Vec3 {
     fn default() -> Self {
@@ -52,6 +53,14 @@ impl Vec3 {
     pub fn near_zero(&self) -> bool {
         let s = 1e-8;
         self.0[0].abs() < s && self.0[1].abs() < s && self.0[2].abs() < s
+    }
+
+    pub fn clamp(&self, min: f32, max: f32) -> Self {
+        Self([
+            self.x().min(max).max(min),
+            self.y().min(max).max(min),
+            self.z().min(max).max(min),
+        ])
     }
 }
 

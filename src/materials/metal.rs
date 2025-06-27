@@ -1,6 +1,7 @@
-use crate::{vec3, Color, HitRecord, Material, Ray};
+use crate::material::{Material, ScatterRecord};
 
-use super::material::ScatterRecord;
+use crate::radiometry::sampling;
+use crate::{vec3, Color, HitRecord, Ray};
 
 #[derive(Clone)]
 pub struct Metal {
@@ -16,12 +17,7 @@ impl Metal {
     }
 }
 impl Material for Metal {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        srec: &mut ScatterRecord,
-    ) -> bool {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
         let reflected = crate::vec3::reflect(r_in.direction(), rec.normal);
         let reflected = vec3::unit_vector(reflected) + (self.fuzz * vec3::random_unit_vector());
         srec.attenuation = self.albedo;
@@ -36,5 +32,16 @@ impl Material for Metal {
 
     fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
         0.
+    }
+    fn emitted_spectrum(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        u: f32,
+        v: f32,
+        p: vec3::Point3,
+        lambda: &sampling::SampledWavelengths,
+    ) -> sampling::SampledSpectrum {
+        todo!()
     }
 }

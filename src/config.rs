@@ -60,56 +60,11 @@ impl SceneConfig {
         }
 
         for light_config in &self.lights {
-            let empty_light = light_to_empty(light_config.clone());
-            println!("empty_light={:?}", empty_light);
-            let empty_light = empty_light.to_hittable(&self.materials)?;
-            world.add(empty_light);
-
-            println!("light_config={:?}", light_config);
             let light = light_config.to_hittable(&self.materials)?;
-            lights.add(light);
+            lights.add(light.clone());
+            world.add(light);
         }
 
         Ok((world, lights))
-    }
-}
-
-fn light_to_empty(config: crate::ObjectConfig) -> crate::ObjectConfig {
-    match config {
-        crate::ObjectConfig::Quad {
-            corner,
-            u,
-            v,
-            transform,
-            ..
-        } => crate::ObjectConfig::Quad {
-            corner,
-            u,
-            v,
-            transform,
-            material: MaterialRef::Inline(crate::MaterialConfig::None),
-        },
-        crate::ObjectConfig::Sphere {
-            center,
-            radius,
-            transform,
-            ..
-        } => crate::ObjectConfig::Sphere {
-            center,
-            radius,
-            transform,
-            material: MaterialRef::Inline(crate::MaterialConfig::None),
-        },
-        crate::ObjectConfig::Box {
-            min,
-            max,
-            transform,
-            ..
-        } => crate::ObjectConfig::Box {
-            min,
-            max,
-            transform,
-            material: MaterialRef::Inline(crate::MaterialConfig::None),
-        },
     }
 }

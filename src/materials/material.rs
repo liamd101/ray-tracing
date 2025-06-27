@@ -1,4 +1,7 @@
-use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::Point3, Pdf, SpherePdf, Vec3};
+use crate::radiometry::sampling;
+use crate::{vec3, Color, HitRecord, Ray};
+
+use crate::{Pdf, SpherePdf};
 
 use dyn_clone::DynClone;
 use std::sync::Arc;
@@ -13,7 +16,7 @@ impl Default for ScatterRecord {
     fn default() -> Self {
         Self {
             attenuation: Color::default(),
-            pdf: Arc::new(SpherePdf::new(Vec3::default())),
+            pdf: Arc::new(SpherePdf::new(vec3::Vec3::default())),
             skip_pdf: true,
             skip_pdf_ray: Ray::default(),
         }
@@ -23,9 +26,19 @@ impl Default for ScatterRecord {
 pub trait Material: DynClone + Send + Sync {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool;
 
-    fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f32, v: f32, p: Point3) -> Color;
+    fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f32, v: f32, p: vec3::Point3) -> Color;
 
     fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f32;
+
+    fn emitted_spectrum(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        u: f32,
+        v: f32,
+        p: vec3::Point3,
+        lambda: &sampling::SampledWavelengths,
+    ) -> sampling::SampledSpectrum;
 }
 
 dyn_clone::clone_trait_object!(Material);
@@ -37,11 +50,23 @@ impl Material for NoneMaterial {
         false
     }
 
-    fn emitted(&self, _: &Ray, _: &HitRecord, _u: f32, _v: f32, _p: Point3) -> Color {
+    fn emitted(&self, _: &Ray, _: &HitRecord, _u: f32, _v: f32, _p: vec3::Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 
     fn scattering_pdf(&self, _: &Ray, _: &HitRecord, _: &Ray) -> f32 {
         0.
+    }
+
+    fn emitted_spectrum(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        u: f32,
+        v: f32,
+        p: vec3::Point3,
+        lambda: &sampling::SampledWavelengths,
+    ) -> sampling::SampledSpectrum {
+        todo!()
     }
 }

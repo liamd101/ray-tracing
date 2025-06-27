@@ -2,6 +2,7 @@ use exr::prelude::*;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
+use crate::radiometry::{color, sampling, spectrum};
 use crate::utils::{degrees_to_radians, random_double, INFINITY};
 use crate::{
     pdf, vec3, Color, HitRecord, Hittable, Interval, Pdf, Point3, Ray, ScatterRecord, Vec3,
@@ -97,8 +98,10 @@ impl Camera {
                     let value = lights.clone();
                     move |x| {
                         let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        let mut pixel_xyz = color::XYZ::default();
                         for s_j in 0..self.sqrt_spp {
                             for s_i in 0..self.sqrt_spp {
+                                let lambda = sampling::SampledWavelengths::uniform();
                                 let ray = self.get_ray(x, y, s_i, s_j);
                                 pixel_color += self.ray_color(&ray, self.max_depth, world, &value);
                             }
@@ -245,6 +248,46 @@ impl Camera {
         color_from_emission + color_from_scatter
     }
 
+    fn ray_spectrum(
+        &self,
+        r: &Ray,
+        depth: usize,
+        world: &dyn Hittable,
+        lights: &Arc<dyn Hittable>,
+        lambda: &sampling::SampledWavelengths,
+    ) -> sampling::SampledSpectrum {
+        if depth == 0 {
+            return Default::default();
+        }
+
+        let mut rec: HitRecord = Default::default();
+        if !world.hit(r, &mut Interval::new(0.001, INFINITY), &mut rec) {
+            todo!()
+        }
+
+        let mut srec: ScatterRecord = ScatterRecord::default();
+
+        let emission_spectrum = rec
+            .mat
+            .emitted_spectrum(r, &rec, rec.u, rec.v, rec.p, lambda);
+
+        if !rec.mat.scatter(r, &rec, &mut srec) {
+            todo!();
+        }
+
+        let light = Arc::new(pdf::HittablePdf::new(lights.clone(), rec.p));
+        let p = pdf::MixturePdf::new(light, srec.pdf);
+
+        let scattered = Ray::new(rec.p, p.generate(), r.time());
+        let pdf_value = p.value(scattered.direction());
+
+        let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
+        let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
+
+        let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
+        todo!();
+    }
+
     pub fn from_toml_file(path: &str) -> std::result::Result<Self, Box<dyn std::error::Error>> {
         let toml_content = std::fs::read_to_string(path)?;
         let config: CameraConfig = toml::from_str(&toml_content)?;
@@ -290,19 +333,20 @@ impl Default for CameraConfig {
 
 impl From<CameraConfig> for Camera {
     fn from(config: CameraConfig) -> Self {
-        let mut camera = Camera::default();
-        camera.aspect_ratio = config.aspect_ratio;
-        camera.image_width = config.image_width;
-        camera.samples_per_pixel = config.samples_per_pixel;
-        camera.max_depth = config.max_depth;
-        camera.background = config.background;
-        camera.vfov = config.vfov;
-        camera.look_from = config.look_from;
-        camera.look_at = config.look_at;
-        camera.vup = config.vup;
-        camera.defocus_angle = config.defocus_angle;
-        camera.focus_dist = config.focus_dist;
-        camera.file_path = config.file_path;
-        camera
+        Camera {
+            aspect_ratio: config.aspect_ratio,
+            image_width: config.image_width,
+            samples_per_pixel: config.samples_per_pixel,
+            max_depth: config.max_depth,
+            background: config.background,
+            vfov: config.vfov,
+            look_from: config.look_from,
+            look_at: config.look_at,
+            vup: config.vup,
+            defocus_angle: config.defocus_angle,
+            focus_dist: config.focus_dist,
+            file_path: config.file_path,
+            ..Default::default()
+        }
     }
 }

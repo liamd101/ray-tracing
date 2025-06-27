@@ -1,8 +1,8 @@
-use crate::{vec3, Color, HitRecord, Material, Ray, SolidColor, SpherePdf, Texture};
+use super::material::{Material, ScatterRecord};
+use crate::radiometry::sampling;
+use crate::{vec3, Color, HitRecord, Ray, SolidColor, SpherePdf, Texture};
 
 use std::sync::Arc;
-
-use super::material::ScatterRecord;
 
 #[derive(Clone)]
 pub struct Isotropic {
@@ -34,5 +34,16 @@ impl Material for Isotropic {
 
     fn scattering_pdf(&self, _: &Ray, _: &HitRecord, _: &Ray) -> f32 {
         1. / (4. * std::f32::consts::PI)
+    }
+    fn emitted_spectrum(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        u: f32,
+        v: f32,
+        p: vec3::Point3,
+        lambda: &sampling::SampledWavelengths,
+    ) -> sampling::SampledSpectrum {
+        todo!()
     }
 }

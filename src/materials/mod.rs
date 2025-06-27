@@ -16,25 +16,16 @@ pub use metal::Metal;
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum MaterialConfig {
     None,
-    Lambertian {
-        color: crate::Color,
-    },
-    Metal {
-        color: crate::Color,
-        fuzz: f32,
-    },
-    Dieletric {
-        refraction_index: f32,
-    },
-    DiffuseLight {
-        color: crate::Color,
-    },
+    Lambertian { color: crate::Color },
+    Metal { color: crate::Color, fuzz: f32 },
+    Dieletric { refraction_index: f32 },
+    DiffuseLight { color: crate::Color },
 }
 
 use std::sync::Arc;
-impl Into<Arc<dyn Material>> for MaterialConfig {
-    fn into(self) -> Arc<dyn Material> {
-        match self {
+impl From<MaterialConfig> for Arc<dyn Material> {
+    fn from(value: MaterialConfig) -> Self {
+        match value {
             MaterialConfig::None => Arc::new(NoneMaterial {}),
             MaterialConfig::Lambertian { color } => Arc::new(Lambertian::new(color)),
             MaterialConfig::Metal { color, fuzz } => Arc::new(Metal::new(color, fuzz)),

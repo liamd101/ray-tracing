@@ -1,6 +1,6 @@
 use crate::{HitRecord, Hittable, Interval, Point3, Ray, Vec3, AABB};
-use std::sync::Arc;
 use rand::Rng;
+use std::sync::Arc;
 
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>,

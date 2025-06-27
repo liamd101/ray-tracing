@@ -68,9 +68,7 @@ impl Sphere {
     fn random_to_sphere(radius: f32, distance_squared: f32) -> Vec3 {
         let r1 = utils::random_double();
         let r2 = utils::random_double();
-        let z = 1. + r2 * (
-            (1. - (radius * radius / distance_squared)).sqrt() - 1.
-            );
+        let z = 1. + r2 * ((1. - (radius * radius / distance_squared)).sqrt() - 1.);
 
         let phi = 2. * std::f32::consts::PI * r1;
         let x = phi.cos() * (1. - z * z).sqrt();
@@ -137,7 +135,7 @@ impl Hittable for Sphere {
         }
 
         let dist_squared = (self.sphere_center(0.) - origin).length_squared();
-        let cos_theta_max = (1. - (self.radius * self.radius/dist_squared)).sqrt();
+        let cos_theta_max = (1. - (self.radius * self.radius / dist_squared)).sqrt();
         let solid_angle = 2. * std::f32::consts::PI * (1. - cos_theta_max);
 
         1. / solid_angle
