@@ -12,8 +12,11 @@ look_from = [278.0, 278.0, -800.0]
 look_at = [278.0, 278.0, 0.0]
 vup = [0.0, 1.0, 0.0]
 
+
 [scene]
-lights = []
+lights = [
+    { type = "quad", corner = [343.0, 554.0, 332.0], u = [-130.0, 0.0, 0.0], v = [0.0, 0.0, -105.0], material = "light" }
+]
 
 [scene.materials]
 empty_mat = { type = "none" }
@@ -25,9 +28,9 @@ light = { type = "diffuse_light", color = [7.0, 7.0, 7.0] }
 
 [[scene.objects]]
 type = "quad"
-corner = [ 555.0, 0.0, 0.0, ]
-u = [ 0.0, 555.0, 0.0, ]
-v = [ 0.0, 0.0, 555.0, ]
+corner = [555.0, 0.0, 0.0]
+u = [0.0, 555.0, 0.0]
+v = [0.0, 0.0, 555.0]
 material = "green"
 
 [[scene.objects]]
