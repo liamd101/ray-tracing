@@ -24,6 +24,8 @@ pub struct Camera {
     pub defocus_angle: f32,
     pub focus_dist: f32,
     pub file_path: String,
+    pub rr_min_depth: usize,
+    pub rr_max_contrib_prob: f32,
     image_height: usize,
     pixel_samples_scale: f32,
     /// Square root of number of samples per pixel
@@ -58,6 +60,8 @@ impl Default for Camera {
             file_path: "image.ppm".into(),
             image_height: 0,
             pixel_samples_scale: 1.0 / 10.0,
+            rr_min_depth: 3,
+            rr_max_contrib_prob: 0.95,
             sqrt_spp: 0,
             recip_sqrt_spp: 0.,
             center: Vec3::new(0.0, 0.0, 0.0),
@@ -228,8 +232,24 @@ impl Camera {
         if !rec.mat.scatter(r, &rec, &mut srec) {
             return color_from_emission;
         }
+
+        // Russian Roulette stuff
+        let brightness = (srec.attenuation.x() + srec.attenuation.y() + srec.attenuation.z()) / 3.;
+        if depth > self.rr_min_depth {
+            if brightness < (1. - self.rr_max_contrib_prob) {
+                return color_from_emission;
+            }
+        }
+        let compensation = if depth > self.rr_min_depth {
+            1. / self.rr_max_contrib_prob
+        } else {
+            1.
+        };
+
         if srec.skip_pdf {
-            return srec.attenuation * self.ray_color(&srec.skip_pdf_ray, depth - 1, world, lights);
+            return color_from_emission
+                + (srec.attenuation
+                    * self.ray_color(&srec.skip_pdf_ray, depth - 1, world, lights) * compensation);
         }
 
         let light = Arc::new(pdf::HittablePdf::new(lights.clone(), rec.p));
@@ -241,7 +261,7 @@ impl Camera {
         let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
         let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
 
-        let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
+        let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color * compensation) / pdf_value;
         color_from_emission + color_from_scatter
     }
 
@@ -267,6 +287,8 @@ pub struct CameraConfig {
     pub defocus_angle: f32,
     pub focus_dist: f32,
     pub file_path: String,
+    pub rr_min_depth: usize,
+    pub rr_max_contrib_prob: f32,
 }
 
 impl Default for CameraConfig {
@@ -284,6 +306,8 @@ impl Default for CameraConfig {
             defocus_angle: 0.0,
             focus_dist: 10.0,
             file_path: "image.ppm".into(),
+            rr_min_depth: 3,
+            rr_max_contrib_prob: 0.95,
         }
     }
 }
@@ -303,6 +327,8 @@ impl From<CameraConfig> for Camera {
             defocus_angle: config.defocus_angle,
             focus_dist: config.focus_dist,
             file_path: config.file_path,
+            rr_min_depth: config.rr_min_depth,
+            rr_max_contrib_prob: config.rr_max_contrib_prob,
             ..Default::default()
         }
     }

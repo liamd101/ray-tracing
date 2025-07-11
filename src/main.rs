@@ -1,5 +1,5 @@
 use ray_tracing::{
-    new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, Config, ConstantMedium, Dielectric,
+    new_box, utils, BvhNode, Camera, Checkerboard, Color, Config, ConstantMedium, Dielectric,
     DiffuseLight, Glossy, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
     Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3,
 };
