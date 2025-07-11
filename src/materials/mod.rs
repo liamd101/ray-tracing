@@ -4,6 +4,7 @@ pub(crate) mod lambertian;
 pub(crate) mod lights;
 pub(crate) mod material;
 pub(crate) mod metal;
+pub(crate) mod glossy;
 
 pub use dialectric::Dielectric;
 pub use isotropic::Isotropic;
@@ -11,6 +12,7 @@ pub use lambertian::Lambertian;
 pub use lights::DiffuseLight;
 pub use material::{Material, NoneMaterial, ScatterRecord};
 pub use metal::Metal;
+pub use glossy::Glossy;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Copy)]
 #[serde(tag = "type", rename_all = "snake_case")]
