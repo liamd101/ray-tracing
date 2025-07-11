@@ -1,6 +1,6 @@
 use ray_tracing::{
     new_box, utils, vec3, BvhNode, Camera, Checkerboard, Color, Config, ConstantMedium, Dielectric,
-    DiffuseLight, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
+    DiffuseLight, Glossy, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
     Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3,
 };
 
@@ -383,7 +383,7 @@ fn cornell_smoke(image_width: usize, file_path: String) {
 fn cornell_box(file_path: String) {
     let toml_string = std::fs::read_to_string(file_path).expect("couldn't open file");
     let config: Config = toml::from_str(&toml_string).expect("invalid config file");
-    let (mut camera, world, lights) = config.to_scene().expect("invalid scene");
+    let (mut camera, mut world, lights) = config.to_scene().expect("invalid scene");
 
     /*
     let metal = Metal::new(Color::new(0.8, 0.85, 0.88), 0.0);
@@ -396,6 +396,16 @@ fn cornell_box(file_path: String) {
     let box1 = Translate::new(Arc::new(box1), Vec3::new(265.0, 0.0, 295.0));
     world.add(Arc::new(box1));
     */
+
+    let plastic = Glossy::new(Color::new(0.73, 0.73, 0.73), 0.8, 0.0);
+    let box2 = new_box(
+        Vec3::new(0., 0., 0.),
+        Vec3::new(165., 165., 165.),
+        Arc::new(plastic),
+    );
+    let box2 = RotateY::new(Arc::new(box2), -18.0);
+    let box2 = Translate::new(Arc::new(box2), Vec3::new(130., 0., 65.));
+    world.add(Arc::new(box2));
 
     /*
     let glass = Arc::new(Dielectric::new(0.));
@@ -542,7 +552,7 @@ fn final_scene(image_width: usize, file_path: String) {
 #[command(author, version, about, long_about=None)]
 struct Cli {
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 
     #[arg(short = 'w', long, default_value_t = 400)]
     image_width: usize,
@@ -561,41 +571,27 @@ enum Command {
     CornellSmoke,
     PerlinSpheres,
     FinalTest,
-    PiTest,
-}
-
-fn pi_test() {
-    fn f(d: Vec3) -> f32 {
-        d.z() * d.z()
-    }
-    fn pdf(_: Vec3) -> f32 {
-        1. / (4. * std::f32::consts::PI)
-    }
-
-    let n = 100_000;
-    let mut sum = 0.;
-
-    for _ in 0..n {
-        let d = vec3::random_unit_vector();
-        let f_d = f(d);
-        sum += f_d / pdf(d);
-    }
-
-    println!("I = {}", sum / (n as f32));
 }
 
 fn main() {
     let args = Cli::parse();
 
-    match args.command {
-        Command::BouncingSpheres => bouncing_spheres(args.image_width, args.file_path),
-        Command::CheckeredSpheres => checkered_spheres(args.image_width, args.file_path),
-        Command::SimpleLight => simple_light(args.image_width, args.file_path),
-        Command::Quads => quads(args.image_width, args.file_path),
-        Command::CornellBox => cornell_box(args.file_path),
-        Command::CornellSmoke => cornell_smoke(args.image_width, args.file_path),
-        Command::PerlinSpheres => perlin_spheres(args.image_width, args.file_path),
-        Command::FinalTest => final_scene(args.image_width, args.file_path),
-        Command::PiTest => pi_test(),
+    if let Some(command) = args.command {
+        match command {
+            Command::BouncingSpheres => bouncing_spheres(args.image_width, args.file_path),
+            Command::CheckeredSpheres => checkered_spheres(args.image_width, args.file_path),
+            Command::SimpleLight => simple_light(args.image_width, args.file_path),
+            Command::Quads => quads(args.image_width, args.file_path),
+            Command::CornellBox => cornell_box(args.file_path),
+            Command::CornellSmoke => cornell_smoke(args.image_width, args.file_path),
+            Command::PerlinSpheres => perlin_spheres(args.image_width, args.file_path),
+            Command::FinalTest => final_scene(args.image_width, args.file_path),
+        }
+    } else {
+        // parse from TOML file
+        let toml_string = std::fs::read_to_string(args.file_path).expect("couldn't open file");
+        let config: Config = toml::from_str(&toml_string).expect("invalid config file");
+        let (mut camera, world, lights) = config.to_scene().expect("invalid scene");
+        camera.render(&world, Arc::new(lights));
     }
 }
