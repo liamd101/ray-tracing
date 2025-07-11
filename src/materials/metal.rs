@@ -1,6 +1,5 @@
 use crate::material::{Material, ScatterRecord};
 
-use crate::radiometry::sampling;
 use crate::{vec3, Color, HitRecord, Ray};
 
 #[derive(Clone)]
@@ -24,24 +23,5 @@ impl Material for Metal {
         srec.skip_pdf = true;
         srec.skip_pdf_ray = Ray::new(rec.p, reflected, r_in.time());
         true
-    }
-
-    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: vec3::Point3) -> Color {
-        Color::new(0.0, 0.0, 0.0)
-    }
-
-    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
-        0.
-    }
-    fn emitted_spectrum(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        u: f32,
-        v: f32,
-        p: vec3::Point3,
-        lambda: &sampling::SampledWavelengths,
-    ) -> sampling::SampledSpectrum {
-        todo!()
     }
 }

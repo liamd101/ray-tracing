@@ -2,7 +2,6 @@ use exr::prelude::*;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
-use crate::radiometry::{color, sampling, spectrum};
 use crate::utils::{degrees_to_radians, random_double, INFINITY};
 use crate::{
     pdf, vec3, Color, HitRecord, Hittable, Interval, Pdf, Point3, Ray, ScatterRecord, Vec3,
@@ -98,10 +97,8 @@ impl Camera {
                     let value = lights.clone();
                     move |x| {
                         let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                        let mut pixel_xyz = color::XYZ::default();
                         for s_j in 0..self.sqrt_spp {
                             for s_i in 0..self.sqrt_spp {
-                                let lambda = sampling::SampledWavelengths::uniform();
                                 let ray = self.get_ray(x, y, s_i, s_j);
                                 pixel_color += self.ray_color(&ray, self.max_depth, world, &value);
                             }
@@ -246,46 +243,6 @@ impl Camera {
 
         let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
         color_from_emission + color_from_scatter
-    }
-
-    fn ray_spectrum(
-        &self,
-        r: &Ray,
-        depth: usize,
-        world: &dyn Hittable,
-        lights: &Arc<dyn Hittable>,
-        lambda: &sampling::SampledWavelengths,
-    ) -> sampling::SampledSpectrum {
-        if depth == 0 {
-            return Default::default();
-        }
-
-        let mut rec: HitRecord = Default::default();
-        if !world.hit(r, &mut Interval::new(0.001, INFINITY), &mut rec) {
-            todo!()
-        }
-
-        let mut srec: ScatterRecord = ScatterRecord::default();
-
-        let emission_spectrum = rec
-            .mat
-            .emitted_spectrum(r, &rec, rec.u, rec.v, rec.p, lambda);
-
-        if !rec.mat.scatter(r, &rec, &mut srec) {
-            todo!();
-        }
-
-        let light = Arc::new(pdf::HittablePdf::new(lights.clone(), rec.p));
-        let p = pdf::MixturePdf::new(light, srec.pdf);
-
-        let scattered = Ray::new(rec.p, p.generate(), r.time());
-        let pdf_value = p.value(scattered.direction());
-
-        let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
-        let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
-
-        let color_from_scatter = (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
-        todo!();
     }
 
     pub fn from_toml_file(path: &str) -> std::result::Result<Self, Box<dyn std::error::Error>> {

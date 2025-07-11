@@ -78,9 +78,7 @@ impl Default for SampledSpectrum {
 impl SampledSpectrum {
     pub fn new(v: &[f32; NUM_SPECTRUM_SAMPLES]) -> Self {
         let mut values: [f32; NUM_SPECTRUM_SAMPLES] = [0.; NUM_SPECTRUM_SAMPLES];
-        for i in 0..NUM_SPECTRUM_SAMPLES {
-            values[i] = v[i];
-        }
+        values[..NUM_SPECTRUM_SAMPLES].copy_from_slice(&v[..NUM_SPECTRUM_SAMPLES]);
         Self { values }
     }
 
@@ -109,16 +107,16 @@ impl SampledSpectrum {
         self.values.iter().any(|&x| x != 0.)
     }
 
-    pub fn to_XYZ(&self, lambda: &SampledWavelengths) -> XYZ {
-        let X = DenselySampledSpectrum::X().sample(lambda);
-        let Y = DenselySampledSpectrum::Y().sample(lambda);
-        let Z = DenselySampledSpectrum::Z().sample(lambda);
+    pub fn to_xyz(&self, lambda: &SampledWavelengths) -> XYZ {
+        let x = DenselySampledSpectrum::x().sample(lambda);
+        let y = DenselySampledSpectrum::y().sample(lambda);
+        let z = DenselySampledSpectrum::z().sample(lambda);
 
         let pdf: SampledSpectrum = lambda.pdf();
         XYZ {
-            X: Self::safe_div(&(self.clone() * X), &pdf).average(),
-            Y: Self::safe_div(&(self.clone() * Y), &pdf).average(),
-            Z: Self::safe_div(&(self.clone() * Z), &pdf).average(),
+            x: Self::safe_div(&(*self * x), &pdf).average(),
+            y: Self::safe_div(&(*self * y), &pdf).average(),
+            z: Self::safe_div(&(*self * z), &pdf).average(),
         } / CIE_Y_INT
     }
 }

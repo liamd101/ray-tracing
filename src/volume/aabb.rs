@@ -2,21 +2,11 @@ use crate::{interval::Interval, ray::Ray, vec3::Point3};
 
 use std::ops;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct AABB {
     pub x: Interval,
     pub y: Interval,
     pub z: Interval,
-}
-
-impl Default for AABB {
-    fn default() -> Self {
-        Self {
-            x: Interval::empty(),
-            y: Interval::empty(),
-            z: Interval::empty(),
-        }
-    }
 }
 
 impl AABB {

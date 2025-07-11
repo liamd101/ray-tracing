@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::core::utils::lerp;
 use crate::radiometry::color::XYZ;
 use crate::radiometry::sampling::{SampledSpectrum, SampledWavelengths, NUM_SPECTRUM_SAMPLES};
@@ -20,11 +21,11 @@ fn inner_product(f: &dyn Spectrum, g: &dyn Spectrum) -> f32 {
     }
     integral
 }
-fn spectrum_to_XYZ(s: &dyn Spectrum) -> XYZ {
+fn spectrum_to_xyz(s: &dyn Spectrum) -> XYZ {
     XYZ {
-        X: inner_product(&DenselySampledSpectrum::X(), s),
-        Y: inner_product(&DenselySampledSpectrum::Y(), s),
-        Z: inner_product(&DenselySampledSpectrum::Z(), s),
+        x: inner_product(&DenselySampledSpectrum::x(), s),
+        y: inner_product(&DenselySampledSpectrum::y(), s),
+        z: inner_product(&DenselySampledSpectrum::z(), s),
     }
 }
 
@@ -68,7 +69,7 @@ impl DenselySampledSpectrum {
         Self {
             lambda_min: lambda_min as isize,
             lambda_max: lambda_max as isize,
-            values: vec![0.; (lambda_min - lambda_max) as usize + 1],
+            values: vec![0.; (lambda_min - lambda_max) + 1],
         }
     }
 
@@ -92,13 +93,13 @@ impl DenselySampledSpectrum {
         }
     }
 
-    pub fn X() -> Self {
+    pub fn x() -> Self {
         todo!()
     }
-    pub fn Y() -> Self {
+    pub fn y() -> Self {
         todo!()
     }
-    pub fn Z() -> Self {
+    pub fn z() -> Self {
         todo!()
     }
 }
@@ -116,7 +117,7 @@ impl Spectrum for DenselySampledSpectrum {
     fn max_value(&self) -> f32 {
         self.values
             .iter()
-            .max_by(|x, y| x.partial_cmp(&y).unwrap())
+            .max_by(|x, y| x.partial_cmp(y).unwrap())
             .copied()
             .unwrap_or(0.)
     }
@@ -191,7 +192,7 @@ impl Spectrum for PiecewiseLinearSpectrum {
     fn max_value(&self) -> f32 {
         self.values
             .iter()
-            .max_by(|x, y| x.partial_cmp(&y).unwrap())
+            .max_by(|x, y| x.partial_cmp(y).unwrap())
             .copied()
             .unwrap_or(0.)
     }

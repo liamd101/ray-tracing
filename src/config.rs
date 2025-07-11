@@ -17,11 +17,11 @@ impl MaterialRef {
         materials: &HashMap<String, crate::MaterialConfig>,
     ) -> Result<crate::MaterialConfig, String> {
         match self {
-            MaterialRef::Inline(material) => Ok(material.clone()),
+            MaterialRef::Inline(material) => Ok(*material),
             MaterialRef::Reference(name) => materials
                 .get(name)
                 .cloned()
-                .ok_or_else(|| format!("Material '{}' not found in materials section", name)),
+                .ok_or_else(|| format!("Material '{name}' not found in materials section")),
         }
     }
 }

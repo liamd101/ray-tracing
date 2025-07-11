@@ -1,6 +1,5 @@
 use super::material::{Material, ScatterRecord};
 
-use crate::radiometry::sampling;
 use crate::{utils, vec3, Color, HitRecord, Ray};
 
 use std::sync::Arc;
@@ -20,6 +19,7 @@ impl Dielectric {
         r0 + (1.0 - r0) * f32::powi(1.0 - cosine, 5)
     }
 }
+
 impl Material for Dielectric {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
         srec.attenuation = Color::new(1.0, 1.0, 1.0);
@@ -45,24 +45,5 @@ impl Material for Dielectric {
 
         srec.skip_pdf_ray = Ray::new(rec.p, direction, r_in.time());
         true
-    }
-
-    fn emitted(&self, _: &Ray, _: &HitRecord, _: f32, _: f32, _: vec3::Point3) -> Color {
-        Color::new(0.0, 0.0, 0.0)
-    }
-
-    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
-        0.
-    }
-    fn emitted_spectrum(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        u: f32,
-        v: f32,
-        p: vec3::Point3,
-        lambda: &sampling::SampledWavelengths,
-    ) -> sampling::SampledSpectrum {
-        todo!()
     }
 }

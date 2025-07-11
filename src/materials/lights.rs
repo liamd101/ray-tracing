@@ -29,10 +29,6 @@ impl DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn scatter(&self, _: &crate::Ray, _: &crate::HitRecord, _: &mut crate::ScatterRecord) -> bool {
-        false
-    }
-
     fn emitted(&self, _: &Ray, rec: &HitRecord, u: f32, v: f32, p: Point3) -> Color {
         if !rec.front_face {
             Color::new(0., 0., 0.)
@@ -41,16 +37,13 @@ impl Material for DiffuseLight {
         }
     }
 
-    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
-        0.
-    }
     fn emitted_spectrum(
         &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        u: f32,
-        v: f32,
-        p: Point3,
+        _: &Ray,
+        _: &HitRecord,
+        _: f32,
+        _: f32,
+        _: Point3,
         lambda: &sampling::SampledWavelengths,
     ) -> sampling::SampledSpectrum {
         self.emit_spectrum.sample(lambda)
