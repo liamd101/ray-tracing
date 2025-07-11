@@ -397,16 +397,6 @@ fn cornell_box(file_path: String) {
     world.add(Arc::new(box1));
     */
 
-    let plastic = Glossy::new(Color::new(0.73, 0.73, 0.73), 0.8, 0.0);
-    let box2 = new_box(
-        Vec3::new(0., 0., 0.),
-        Vec3::new(165., 165., 165.),
-        Arc::new(plastic),
-    );
-    let box2 = RotateY::new(Arc::new(box2), -18.0);
-    let box2 = Translate::new(Arc::new(box2), Vec3::new(130., 0., 65.));
-    world.add(Arc::new(box2));
-
     /*
     let glass = Arc::new(Dielectric::new(0.));
     world.add(Arc::new(Sphere::stationary(

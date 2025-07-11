@@ -1,9 +1,9 @@
 [camera]
-file_path = 'cornell-box.ppm'
+file_path = 'cornell-box-random-fix.ppm'
 aspect_ratio = 1.0
-image_width = 400
-samples_per_pixel = 100
-max_depth = 50
+image_width = 250
+samples_per_pixel = 200
+max_depth = 75
 vfov = 40.0
 defocus_angle = 0.0
 focus_dist = 10.0
@@ -11,6 +11,8 @@ background = [0.0, 0.0, 0.0]
 look_from = [278.0, 278.0, -800.0]
 look_at = [278.0, 278.0, 0.0]
 vup = [0.0, 1.0, 0.0]
+rr_min_depth = 5
+rr_max_contrib_prob = 0.95
 
 
 [scene]
