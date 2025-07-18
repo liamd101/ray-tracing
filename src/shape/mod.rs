@@ -4,6 +4,9 @@ pub use quadrilateral::{new_box, Quadrilateral};
 pub mod sphere;
 pub use sphere::Sphere;
 
+pub mod cylinder;
+pub use cylinder::Cylinder;
+
 use crate::{MaterialRef, Point3, RotateY, Translate, Vec3};
 use std::sync::Arc;
 

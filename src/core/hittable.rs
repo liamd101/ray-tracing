@@ -45,9 +45,13 @@ pub trait Hittable: Send + Sync {
 
     fn bounding_box(&self) -> &AABB;
 
-    fn pdf_value(&self, origin: Point3, direction: Vec3) -> f32;
+    fn pdf_value(&self, origin: Point3, direction: Vec3) -> f32 {
+        0.0
+    }
 
-    fn random(&self, origin: Point3) -> Vec3;
+    fn random(&self, origin: Point3) -> Vec3 {
+        Vec3::default()
+    }
 }
 
 pub struct Translate {

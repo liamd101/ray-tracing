@@ -1,7 +1,7 @@
 use ray_tracing::{
     new_box, utils, BvhNode, Camera, Checkerboard, Color, Config, ConstantMedium, Dielectric,
     DiffuseLight, Glossy, HittableList, Lambertian, Metal, NoneMaterial, PerlinNoise, Point3,
-    Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3,
+    Quadrilateral as Quad, RotateY, SolidColor, Sphere, Translate, Vec3, Cylinder,
 };
 
 use clap::{Parser, Subcommand};
@@ -306,12 +306,6 @@ fn cornell_smoke(image_width: usize, file_path: String) {
         red,
     )));
     world.add(Arc::new(Quad::new(
-        Point3::new(113.0, 554.0, 127.0),
-        Vec3::new(330.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, 305.0),
-        light,
-    )));
-    world.add(Arc::new(Quad::new(
         Point3::new(0.0, 555.0, 0.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
@@ -338,7 +332,17 @@ fn cornell_smoke(image_width: usize, file_path: String) {
     );
     let box1 = Arc::new(RotateY::new(Arc::new(box1), 15.0));
     let box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+    world.add(box1);
 
+    let cyl = Cylinder::new(
+        Vec3::new(130.0, 0.0, 65.0),
+        50.0,
+        165.0,
+        white.clone(),
+    );
+    world.add(Arc::new(cyl));
+
+    /*
     let box2 = new_box(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 165.0, 165.0),
@@ -346,7 +350,24 @@ fn cornell_smoke(image_width: usize, file_path: String) {
     );
     let box2 = Arc::new(RotateY::new(Arc::new(box2), -18.0));
     let box2 = Arc::new(Translate::new(box2, Vec3::new(130.0, 0.0, 65.0)));
+    world.add(box2);
+    */
 
+    let mut lights = HittableList::new();
+    world.add(Arc::new(Quad::new(
+        Point3::new(113.0, 554.0, 127.0),
+        Vec3::new(330.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 305.0),
+        light,
+    )));
+    lights.add(Arc::new(Quad::new(
+        Point3::new(113.0, 554.0, 127.0),
+        Vec3::new(330.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 305.0),
+        Arc::new(NoneMaterial),
+    )));
+
+    /*
     // Add volumetric media (smoke)
     world.add(Arc::new(ConstantMedium::with_color(
         box1,
@@ -358,8 +379,9 @@ fn cornell_smoke(image_width: usize, file_path: String) {
         0.01,
         Color::new(1.0, 1.0, 1.0),
     )));
+    */
 
-    let _world: BvhNode = BvhNode::from_list(world);
+    let world: BvhNode = BvhNode::from_list(world);
 
     let mut cam = Camera::new();
 
@@ -377,7 +399,7 @@ fn cornell_smoke(image_width: usize, file_path: String) {
     cam.defocus_angle = 0.0;
 
     cam.file_path = file_path;
-    // cam.render(&world);
+    cam.render(&world, Arc::new(lights));
 }
 
 fn cornell_box(file_path: String) {
